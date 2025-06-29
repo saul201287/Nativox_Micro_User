@@ -1,0 +1,50 @@
+{
+  "name": "microserviciouser",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "tsc": "tsc",
+    "dev": "tsnd --respawn --clear ./src/index.ts",
+    "start": "pm2 start ./dist/index.js",
+    "stop": "pm2 stop all",
+    "migration:run": "ts-node src/scripts/run-migrations.ts",
+    "migration:revert": "ts-node src/scripts/revert-migration.ts",
+    "migration:generate": "ts-node src/scripts/generate-migration.ts",
+    "migration:create": "ts-node src/scripts/create-migration.ts",
+    "migration:show": "npx typeorm-ts-node-commonjs migration:show -d src/config/typeorm.config.ts",
+    "db:drop": "npx typeorm-ts-node-commonjs schema:drop -d src/config/typeorm.config.ts",
+    "db:sync": "npx typeorm-ts-node-commonjs schema:sync -d src/config/typeorm.config.ts",
+    "typeorm": "npx typeorm-ts-node-commonjs"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/helmet": "^0.0.48",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.15.33",
+    "@types/node-cron": "^3.0.11",
+    "@types/redis": "^4.0.10",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "ts-node-dev": "^2.0.0",
+    "typeorm": "^0.3.21",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/signale": "^1.4.7",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase-admin": "^13.2.0",
+    "kafkajs": "^2.2.4",
+    "mysql": "^2.18.1",
+    "node-cron": "^3.0.3",
+    "redis": "^4.7.1",
+    "signale": "^1.4.0"
+  }
+}
