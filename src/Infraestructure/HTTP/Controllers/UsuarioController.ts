@@ -30,6 +30,8 @@ export class UsuarioController {
     try {
       const { email, contrasena } = req.body;
       const result = await this.loginUseCase.execute({ email, contrasena });
+      console.log(result);
+      
       res.json(result);
     } catch (error) {
       res.status(401).json({ error: error });

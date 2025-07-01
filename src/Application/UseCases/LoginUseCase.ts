@@ -8,7 +8,7 @@ export class LoginUseCase {
   async execute(dto: LoginDTO): Promise<{ token: string; expiresAt: Date }> {
     const email = new Email(dto.email);
     const token = await this.servicioAutenticacion.login(email, dto.contrasena);
-
+    
     return {
       token: token.getToken(),
       expiresAt: token.getExpiresAt(),

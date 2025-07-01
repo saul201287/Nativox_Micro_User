@@ -56,7 +56,8 @@ servicioNotificaciones.registrarStrategy(
 
 const registrarUsuarioUseCase = new RegistrarUsuarioUseCase(
   usuarioRepository,
-  eventPublisher
+  eventPublisher,
+  servicioNotificaciones
 );
 const loginUseCase = new LoginUseCase(servicioAutenticacion);
 const actualizarProgresoUseCase = new ActualizarProgresoUseCase(

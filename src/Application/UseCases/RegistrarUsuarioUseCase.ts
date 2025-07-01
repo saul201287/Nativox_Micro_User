@@ -9,32 +9,35 @@ import { IdiomaPreferidoVO } from "../../Domain/ValueObjects/IdiomaPreferido";
 import { Phone } from "../../Domain/ValueObjects/Phone";
 import { RegistrarUsuarioDTO } from "../DTOs/DTOs";
 import * as bcrypt from "bcrypt";
+import {
+  ServicioDeNotificaciones,
+  TipoNotificacion,
+} from "../../Domain/Services/ServicioDeNotificaciones";
 
 export class RegistrarUsuarioUseCase {
   constructor(
     private usuarioRepository: UsuarioRepository,
-    private eventPublisher: EventPublisher
+    private eventPublisher: EventPublisher,
+    private servicioNotificaciones: ServicioDeNotificaciones
   ) {}
 
   async execute(dto: RegistrarUsuarioDTO): Promise<{ id: string }> {
     try {
-      console.log(dto);
-
       const email = new Email(dto.email);
       const phone = new Phone(dto.phone, true);
-      console.log(email, phone);
 
-      // Verificar unicidad del email
       const usuarioExistente = await this.usuarioRepository.findByEmail(email);
-      console.log(usuarioExistente);
+
       if (usuarioExistente) {
         throw new Error("El email ya está registrado");
       }
 
-      // Crear usuario
       const usuarioId = crypto.randomUUID();
       const idiomaPreferido = new IdiomaPreferidoVO(dto.idiomaPreferido);
-      const contrasenaHash = await bcrypt.hash(dto.contrasena, 10);
+      const contrasenaHash = await bcrypt.hash(
+        dto.contrasena,
+        Number(process.env.SECRET_JUMP)
+      );
 
       const usuario = new Usuario(
         usuarioId,
@@ -49,7 +52,6 @@ export class RegistrarUsuarioUseCase {
 
       console.log(userCreate);
 
-      // Publicar evento
       const event = new UsuarioRegistradoEvent(
         usuario.id,
         usuario.email.getValue(),
@@ -57,11 +59,17 @@ export class RegistrarUsuarioUseCase {
       );
       await this.eventPublisher.publish(event);
 
+      await this.servicioNotificaciones.enviarNotificacion(
+        usuario.id,
+        "¡Bienvenido a la plataforma!",
+        TipoNotificacion.EMAIL
+      );
+
       return { id: usuario.id };
     } catch (error) {
       console.log(error);
-      
-      throw new Error("Error: " +  error);
+
+      throw new Error("Error: " + error);
     }
   }
 }

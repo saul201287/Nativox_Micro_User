@@ -30,8 +30,8 @@ export class Usuario {
   get email(): Email {
     return this._email;
   }
-  get phone():Phone{
-    return this._phone
+  get phone(): Phone {
+    return this._phone;
   }
   get contrasenaHash(): string {
     return this._contrasenaHash;
@@ -64,11 +64,14 @@ export class Usuario {
 
   async cambiarContrasena(nuevaContrasena: string): Promise<void> {
     this.validateContrasena(nuevaContrasena);
-    this._contrasenaHash = await bcrypt.hash(nuevaContrasena, 10);
+    this._contrasenaHash = await bcrypt.hash(
+      nuevaContrasena,
+      Number(process.env.SECRET_JUMP)
+    );
   }
 
   async verificarContrasena(contrasena: string): Promise<boolean> {
-    return bcrypt.compare(contrasena, this._contrasenaHash);
+    return await bcrypt.compare(contrasena, this._contrasenaHash);
   }
 
   agregarProgreso(progreso: ProgresoUsuario): void {

@@ -27,6 +27,7 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
     usuarioEntity.id = usuario.id;
     usuarioEntity.nombre = usuario.nombre;
     usuarioEntity.email = usuario.email.getValue();
+    usuarioEntity.phone = usuario.phone.Number
     usuarioEntity.contrasena_hash = usuario.contrasenaHash;
     usuarioEntity.idioma_preferido = usuario.idiomaPreferido.getValue();
     usuarioEntity.fecha_registro = usuario.fechaRegistro;
@@ -70,14 +71,18 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
   }
 
   async findByEmail(email: Email): Promise<Usuario | null> {
+   try {
     const usuarioEntity = await this.usuarioRepo.findOne({
       where: { email: email.getValue() },
       relations: ["progresos", "notificaciones"],
     });
-
+    
     if (!usuarioEntity) return null;
 
     return this.toDomain(usuarioEntity);
+   } catch (error) {
+    throw new Error("Credenciales inválidas: " + error);
+   }
   }
 
   async delete(id: string): Promise<void> {
