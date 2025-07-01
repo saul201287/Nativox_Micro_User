@@ -13,11 +13,11 @@ const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
   synchronize: process.env.NODE_ENV === "development" ? true : false,
-  logging: process.env.NODE_ENV === "development",
+  logging: false, //process.env.NODE_ENV === "development",
   entities:
     process.env.NODE_ENV === "production"
       ? ["dist/db/entities/**/*.js"]
-      : ["src/db/entities/**/*.ts"],
+      : ["src/Config/db/entities/**/*.ts"],
   migrations:
     process.env.NODE_ENV === "production"
       ? ["dist/migrations/**/*.js"]

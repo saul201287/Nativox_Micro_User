@@ -1,4 +1,4 @@
-import { AppDataSource } from "../Config/db/typeorm.config";
+import { AppDataSource } from "../Config/db/migrations/typeorm.config";
 import { Signale } from "signale";
 
 const signale = new Signale();

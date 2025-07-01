@@ -5,7 +5,9 @@ import { ProgresoUsuario } from "../../../Domain/Entities/ProgresoUsuario";
 import { UsuarioRepository } from "../../../Domain/Repositories/Ports";
 import { Email } from "../../../Domain/ValueObjects/Email";
 import { IdiomaPreferidoVO, IdiomaPreferido } from "../../../Domain/ValueObjects/IdiomaPreferido";
-import { UsuarioEntity, ProgresoUsuarioEntity, NotificacionEntity } from "./Entities";
+import { UsuarioEntity } from "../../../Config/db/entities/User.Entity";
+import { ProgresoUsuarioEntity } from "../../../Config/db/entities/ProgresoUsuario.entity";
+import { NotificacionEntity } from "../../../Config/db/entities/Notificacion.Entity";
 import { Phone } from "../../../Domain/ValueObjects/Phone";
 
 export class TypeORMUsuarioRepository implements UsuarioRepository {
