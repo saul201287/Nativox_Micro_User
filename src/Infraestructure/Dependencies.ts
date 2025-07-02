@@ -4,7 +4,7 @@ import { database } from "../Config/db/connet";
 import { ActualizarProgresoUseCase } from "../Application/UseCases/ActualizarProgresoUseCase";
 import { LoginUseCase } from "../Application/UseCases/LoginUseCase";
 import { RegistrarUsuarioUseCase } from "../Application/UseCases/RegistrarUsuarioUseCase";
-import { ServicioDeAutenticacion } from "../Domain/Services/ServicioDeAutenticacion";
+import { ServicioDeAutenticacion } from "../Domain/Services/ServicesAuth";
 import {
   ServicioDeNotificaciones,
   TipoNotificacion,

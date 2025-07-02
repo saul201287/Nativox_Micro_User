@@ -1,6 +1,6 @@
 import { Email } from "../../Domain/ValueObjects/Email";
 import { LoginDTO } from "../DTOs/DTOs";
-import { ServicioDeAutenticacion } from "../../Domain/Services/ServicioDeAutenticacion";
+import { ServicioDeAutenticacion } from "../../Domain/Services/ServicesAuth";
 
 export class LoginUseCase {
   constructor(private servicioAutenticacion: ServicioDeAutenticacion) {}
