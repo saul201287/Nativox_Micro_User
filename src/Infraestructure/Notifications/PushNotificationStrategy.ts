@@ -12,8 +12,6 @@ export class PushNotificationStrategy implements NotificacionStrategy {
 }
 
 export class EmailNotificationStrategy implements NotificacionStrategy {
-  
-  
   private transporter = nodemailer.createTransport({
     host: process.env.HOST_EMAIL,
     port: Number(process.env.PORT_EMAIL),
@@ -24,12 +22,23 @@ export class EmailNotificationStrategy implements NotificacionStrategy {
     },
   });
 
-  async enviar(usuario: Usuario, mensaje: string): Promise<void> {
+  async enviar(usuario: any, mensaje: string): Promise<void> {
     const mailOptions = {
       from: process.env.USER_EMAIL || '"Mi App" <no-reply@miapp.com>',
       to: usuario.email.getValue(),
-      subject: "Notificación",
+      subject: "¡Bienvenido a Mi App!",
       text: mensaje,
+      html: `
+        <div style="font-family: Arial, sans-serif; text-align: center;">
+          <img src=${
+            process.env.IMG_LOGO
+          } alt="Logo Mi App" style="max-width: 150px; margin-bottom: 20px;">
+          <h2>¡Hola, ${usuario.nombre}!</h2>
+          <p>${mensaje}</p>
+          <hr>
+          <small>Este es un mensaje automático de Mi App. Fecha: ${new Date().toLocaleString()}</small>
+        </div>
+      `,
     };
 
     try {
