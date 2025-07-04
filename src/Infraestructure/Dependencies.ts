@@ -1,6 +1,6 @@
 import { Kafka } from "kafkajs";
 import * as dotenv from "dotenv";
-import { database } from "../Config/db/connet";
+import { database } from "../Config/db/connect";
 import { ActualizarProgresoUseCase } from "../Application/UseCases/ActualizarProgresoUseCase";
 import { LoginUseCase } from "../Application/UseCases/LoginUseCase";
 import { RegistrarUsuarioUseCase } from "../Application/UseCases/RegistrarUsuarioUseCase";

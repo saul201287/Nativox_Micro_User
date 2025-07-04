@@ -43,24 +43,35 @@ class Database {
     return Database.instance;
   }
 
-  public async connect(): Promise<void> {
-    try {
-      if (!this.dataSource.isInitialized) {
-        await this.dataSource.initialize();
-        signale.success("Conexión exitosa a la base de datos");
+  public async connect(retries = 5, delayMs = 3000): Promise<void> {
+    let attempts = 0;
+    while (attempts < retries) {
+      try {
+        if (!this.dataSource.isInitialized) {
+          await this.dataSource.initialize();
+          signale.success("Conexión exitosa a la base de datos");
 
-        if (
-          process.env.NODE_ENV === "production" &&
-          process.env.AUTO_RUN_MIGRATIONS === "true"
-        ) {
-          signale.info("Ejecutando migraciones automáticamente...");
-          await this.dataSource.runMigrations();
-          signale.success("Migraciones ejecutadas");
+          if (
+            process.env.NODE_ENV === "production" &&
+            process.env.AUTO_RUN_MIGRATIONS === "true"
+          ) {
+            signale.info("Ejecutando migraciones automáticamente...");
+            await this.dataSource.runMigrations();
+            signale.success("Migraciones ejecutadas");
+          }
         }
+        return; 
+      } catch (error) {
+        attempts++;
+        signale.error(
+          `Error al conectar con la base de datos (intento ${attempts} de ${retries}):`,
+          error
+        );
+        if (attempts >= retries) {
+          throw error;
+        }
+        await new Promise((res) => setTimeout(res, delayMs * attempts));
       }
-    } catch (error) {
-      signale.error("Error al conectar con la base de datos:", error);
-      throw error;
     }
   }
 

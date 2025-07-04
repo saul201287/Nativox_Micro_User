@@ -1,12 +1,12 @@
 import { app } from "./Cmd/server";
 import helmet from "helmet";
 import { Signale } from "signale";
-import { database } from "../src/Config/db/connet";
+import { database } from "./Config/db/connect";
 import { eventPublisher } from "./Infraestructure/Dependencies";
 
 async function bootstrap() {
   try {
-    database.connect();
+    await database.connect();
     const dataSource = database.getDataSource();
 
     app.use(helmet.hidePoweredBy());

@@ -5,7 +5,7 @@
   "scripts": {
     "tsc": "tsc",
     "dev": "tsnd --respawn --clear ./src/index.ts",
-    "start": "pm2 start ./dist/index.js",
+    "start": "pm2 start ./dist/index.js --watch && pm2 logs",
     "stop": "pm2 stop all",
     "migration:run": "ts-node src/scripts/run-migrations.ts",
     "migration:revert": "ts-node src/scripts/revert-migration.ts",
@@ -43,7 +43,7 @@
     "express": "^4.21.2",
     "firebase-admin": "^13.2.0",
     "kafkajs": "^2.2.4",
-    "mysql": "^2.18.1",
+    "mysql2": "^3.14.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^7.0.4",
     "redis": "^4.7.1",
