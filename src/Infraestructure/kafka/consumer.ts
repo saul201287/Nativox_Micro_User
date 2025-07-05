@@ -1,4 +1,39 @@
 import { Kafka, Consumer, EachMessagePayload } from 'kafkajs';
+import { Signale } from 'signale';
+import { database } from '../../Config/db/connect';
+import { TypeORMUsuarioRepository } from '../Adapters/TypeORM/UserRepository';
+
+const signale = new Signale();
+
+if (!process.env.CLIENT_ID || !process.env.BROKER) {
+  throw new Error("Credenciales de Kafka nulas");
+}
+
+const kafka = new Kafka({
+  clientId: process.env.CLIENT_ID,
+  brokers: [process.env.BROKER],
+});
+
+const consumer = kafka.consumer({ groupId: 'usuario-saga-group' });
+
+export async function startSagaConsumer() {
+  await consumer.connect();
+  await consumer.subscribe({ topic: 'user-domain-events', fromBeginning: false });
+
+  await consumer.run({
+    eachMessage: async ({ topic, partition, message }) => {
+      const eventType = message.headers?.eventType?.toString();
+      const eventData = JSON.parse(message.value?.toString() || '{}');
+
+      if (eventType === 'NotificacionFallida') {
+        signale.warn('Notificación fallida, iniciando compensación SAGA...');
+        const usuarioRepository = new TypeORMUsuarioRepository(database.getDataSource());
+        await usuarioRepository.delete(eventData.usuarioId);
+        signale.warn(`Usuario ${eventData.usuarioId} eliminado por SAGA de compensación`);
+      }
+    },
+  });
+}
 
 export class KafkaConsumer {
   private consumer: Consumer;

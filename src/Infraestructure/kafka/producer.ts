@@ -1,8 +1,12 @@
 import { Kafka } from "kafkajs";
 
+if (!process.env.CLIENT_ID || !process.env.BROKER) {
+  throw new Error("Credenciales de Kafka nulas");
+}
+
 const kafka = new Kafka({
-  clientId: "usuarios",
-  brokers: ["localhost:9092"],
+  clientId: process.env.CLIENT_ID,
+  brokers: [process.env.BROKER],
 });
 
 export const producer = kafka.producer();

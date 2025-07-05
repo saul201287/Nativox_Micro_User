@@ -3,6 +3,8 @@ import helmet from "helmet";
 import { Signale } from "signale";
 import { database } from "./Config/db/connect";
 import { eventPublisher } from "./Infraestructure/Dependencies";
+import { startSagaConsumer } from "./Infraestructure/kafka/consumer";
+import { sanitizeInputs } from "./Shared/Middleware/sanitize";
 
 async function bootstrap() {
   try {
@@ -18,6 +20,8 @@ async function bootstrap() {
       })
     );
 
+    app.use(sanitizeInputs);
+
     app.get("/health", (req, res) => {
       res.json({
         status: "ok",
@@ -26,19 +30,16 @@ async function bootstrap() {
       });
     });
 
-    const port = process.env.PORT || 3000;
-    const options = {
-      secrets: ["([0-9]{4}-?)+"],
-    };
+    await startSagaConsumer();
 
-    const logger = new Signale(options);
+    const port = process.env.PORT || 3000;
+    const logger = new Signale();
     const server = app.listen(port, () => {
       logger.success(`Server listening on port: ${port}`);
     });
 
     const gracefulShutdown = async (signal: string) => {
       console.log(`${signal} received. Shutting down gracefully...`);
-
       server.close(async () => {
         try {
           await eventPublisher.disconnect();
