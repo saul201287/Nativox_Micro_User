@@ -1,11 +1,19 @@
-import expressSanitize from "express-sanitizer";
 import { Request, Response, NextFunction } from "express";
+import { matchedData } from "express-validator";
 
-export function sanitizeInputs(req: Request, res: Response, next: NextFunction) {
-  expressSanitize.middleware()(req, res, () => {
-    req.body = expressSanitize.sanitize(req.body);
-    req.query = expressSanitize.sanitize(req.query);
-    req.params = expressSanitize.sanitize(req.params);
-    next();
+export function sanitizeInputs(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  req.body = matchedData(req, { locations: ["body"], includeOptionals: true });
+  req.query = matchedData(req, {
+    locations: ["query"],
+    includeOptionals: true,
   });
+  req.params = matchedData(req, {
+    locations: ["params"],
+    includeOptionals: true,
+  });
+  next();
 }

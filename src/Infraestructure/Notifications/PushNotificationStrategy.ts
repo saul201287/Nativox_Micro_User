@@ -4,7 +4,7 @@ import nodemailer from "nodemailer";
 
 export class PushNotificationStrategy implements NotificacionStrategy {
   async enviar(usuario: Usuario, mensaje: string): Promise<void> {
-    // Implementar integración con servicio de push notifications
+    // TODO:Implementar Firebase
     console.log(
       `Enviando push notification a ${usuario.email.getValue()}: ${mensaje}`
     );
@@ -23,6 +23,8 @@ export class EmailNotificationStrategy implements NotificacionStrategy {
   });
 
   async enviar(usuario: any, mensaje: string): Promise<void> {
+    console.log(usuario.email.getValue());
+    
     const mailOptions = {
       from: process.env.USER_EMAIL || '"Mi App" <no-reply@miapp.com>',
       to: usuario.email.getValue(),

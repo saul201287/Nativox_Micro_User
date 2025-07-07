@@ -3,3 +3,4 @@
 /serviceAccountKey.json
 /dist
 /init.sql
+/docker-compose.yml

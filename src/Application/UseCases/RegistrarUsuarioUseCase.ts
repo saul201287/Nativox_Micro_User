@@ -53,19 +53,19 @@ export class RegistrarUsuarioUseCase {
       console.log(userCreate);
 
       const event = new UsuarioRegistradoEvent(
-        "fac0999c-9bd3-45fd-b76a-0819d7890323",
+        usuarioId,
         usuario.email.getValue(),
         usuario.nombre
       );
       await this.eventPublisher.publish(event);
 
       await this.servicioNotificaciones.enviarNotificacion(
-        "fac0999c-9bd3-45fd-b76a-0819d7890323",
+        usuarioId,
         "¡Bienvenido a la plataforma!",
         TipoNotificacion.EMAIL
       );
 
-      return { id: "fac0999c-9bd3-45fd-b76a-0819d7890323" };
+      return { id: usuarioId };
     } catch (error) {
       console.log(error);
 

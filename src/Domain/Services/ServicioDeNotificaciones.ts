@@ -41,7 +41,6 @@ export class ServicioDeNotificaciones {
       throw new Error(`Tipo de notificación ${tipo} no soportado`);
     }
 
-    // Crear notificación en el dominio
     const notificacion = new Notificacion(
       crypto.randomUUID(),
       usuarioId,
@@ -51,7 +50,6 @@ export class ServicioDeNotificaciones {
     usuario.agregarNotificacion(notificacion);
     await this.usuarioRepository.save(usuario);
 
-    // Enviar notificación externa
     await strategy.enviar(usuario, mensaje);
   }
 
@@ -61,7 +59,6 @@ export class ServicioDeNotificaciones {
     fechaEnvio: Date,
     tipo: TipoNotificacion = TipoNotificacion.PUSH
   ): Promise<void> {
-    // Implementar lógica de programación (scheduler)
     console.log(`Notificación programada para ${fechaEnvio}`);
   }
 }

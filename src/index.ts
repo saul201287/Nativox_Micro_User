@@ -32,8 +32,13 @@ async function bootstrap() {
 
     await startSagaConsumer();
 
-    const port = process.env.PORT || 3000;
-    const logger = new Signale();
+    const options = {
+      secrets: ["([0-9]{4}-?)+"],
+    };
+
+    const logger = new Signale(options);
+    const port = process.env.PORT ?? 3000;
+    
     const server = app.listen(port, () => {
       logger.success(`Server listening on port: ${port}`);
     });

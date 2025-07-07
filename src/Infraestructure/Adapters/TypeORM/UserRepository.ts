@@ -22,7 +22,6 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
   }
 
   async save(usuario: Usuario): Promise<void> {
-    // Guardar usuario
     const usuarioEntity = new UsuarioEntity();
     usuarioEntity.id = usuario.id;
     usuarioEntity.nombre = usuario.nombre;
@@ -34,7 +33,6 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
 
     await this.usuarioRepo.save(usuarioEntity);
 
-    // Guardar progresos
     for (const progreso of usuario.progresos) {
       const progresoEntity = new ProgresoUsuarioEntity();
       progresoEntity.id = progreso.id;
@@ -46,7 +44,6 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
       await this.progresoRepo.save(progresoEntity);
     }
 
-    // Guardar notificaciones
     for (const notificacion of usuario.notificaciones) {
       const notifEntity = new NotificacionEntity();
       notifEntity.id = notificacion.id;
@@ -106,7 +103,6 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
       entity.fecha_registro
     );
 
-    // Agregar progresos
     if (entity.progresos) {
       for (const progresoEntity of entity.progresos) {
         const progreso = new ProgresoUsuario(
@@ -120,7 +116,6 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
       }
     }
 
-    // Agregar notificaciones
     if (entity.notificaciones) {
       for (const notifEntity of entity.notificaciones) {
         const notificacion = new Notificacion(
