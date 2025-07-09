@@ -62,7 +62,7 @@ const registrarUsuarioUseCase = new RegistrarUsuarioUseCase(
   eventPublisher,
   servicioNotificaciones
 );
-const loginUseCase = new LoginUseCase(servicioAutenticacion);
+const loginUseCase = new LoginUseCase(servicioAutenticacion, usuarioRepository);
 const actualizarProgresoUseCase = new ActualizarProgresoUseCase(
   usuarioRepository,
   eventPublisher

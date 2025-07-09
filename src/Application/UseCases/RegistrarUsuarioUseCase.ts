@@ -42,6 +42,7 @@ export class RegistrarUsuarioUseCase {
       const usuario = new Usuario(
         usuarioId,
         dto.nombre,
+        dto.apellido,
         email,
         phone,
         contrasenaHash,

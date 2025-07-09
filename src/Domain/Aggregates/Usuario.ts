@@ -14,6 +14,7 @@ export class Usuario {
   constructor(
     private _id: string,
     private _nombre: string,
+    private _apellido: string,
     private _email: Email,
     private _phone: Phone,
     private _contrasenaHash: string,
@@ -29,6 +30,9 @@ export class Usuario {
   }
   get nombre(): string {
     return this._nombre;
+  }
+  get apellido(): string {
+    return this._apellido;
   }
   get email(): Email {
     return this._email;

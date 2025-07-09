@@ -18,9 +18,10 @@ export class UsuarioController {
 
   async registrar(req: Request, res: Response): Promise<void> {
     try {
-      const { nombre, email, phone, contrasena, idiomaPreferido, fcmToken } = req.body;
+      const { nombre, apellido, email, phone, contrasena, idiomaPreferido, fcmToken } = req.body;
       const result = await this.registrarUsuarioUseCase.execute({
         nombre,
+        apellido,
         email,
         phone,
         contrasena,
@@ -37,7 +38,6 @@ export class UsuarioController {
     try {
       const { email, contrasena } = req.body;
       const result = await this.loginUseCase.execute({ email, contrasena });
-      console.log(result);
       
       res.json(result);
     } catch (error) {

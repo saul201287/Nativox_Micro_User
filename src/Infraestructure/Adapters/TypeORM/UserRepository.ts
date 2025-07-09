@@ -25,6 +25,7 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
     const usuarioEntity = new UsuarioEntity();
     usuarioEntity.id = usuario.id;
     usuarioEntity.nombre = usuario.nombre;
+    usuarioEntity.apellido = usuario.apellido;
     usuarioEntity.email = usuario.email.getValue();
     usuarioEntity.phone = usuario.phone.Number
     usuarioEntity.contrasena_hash = usuario.contrasenaHash;
@@ -114,6 +115,7 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
     const usuario = new Usuario(
       entity.id!,
       entity.nombre!,
+      entity.apellido!,
       email,
       phone,
       entity.contrasena_hash,

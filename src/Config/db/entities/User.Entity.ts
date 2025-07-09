@@ -16,7 +16,10 @@ export class UsuarioEntity {
 
   @Column()
   nombre?: string;
-
+  
+  @Column()
+  apellido?: string;
+  
   @Column({ unique: true })
   email!: string;
 
