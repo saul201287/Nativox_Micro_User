@@ -8,6 +8,8 @@ import { Phone } from "../ValueObjects/Phone";
 export class Usuario {
   private _progresos: ProgresoUsuario[] = [];
   private _notificaciones: Notificacion[] = [];
+  private _tokenRecuperacion?: string;
+  private _fechaExpiracionToken?: Date;
 
   constructor(
     private _id: string,
@@ -16,7 +18,8 @@ export class Usuario {
     private _phone: Phone,
     private _contrasenaHash: string,
     private _idiomaPreferido: IdiomaPreferidoVO,
-    private _fechaRegistro: Date = new Date()
+    private _fechaRegistro: Date = new Date(),
+    private _fcmToken?: string
   ) {
     this.validateNombre(this.nombre);
   }
@@ -48,6 +51,15 @@ export class Usuario {
   get notificaciones(): Notificacion[] {
     return [...this._notificaciones];
   }
+  get fcmToken(): string | undefined {
+    return this._fcmToken;
+  }
+  get tokenRecuperacion(): string | undefined {
+    return this._tokenRecuperacion;
+  }
+  get fechaExpiracionToken(): Date | undefined {
+    return this._fechaExpiracionToken;
+  }
 
   cambiarNombre(nuevoNombre: string): void {
     this.validateNombre(nuevoNombre);
@@ -62,6 +74,17 @@ export class Usuario {
     this._idiomaPreferido = nuevoIdioma;
   }
 
+  establecerFcmToken(token: string): void {
+    if (!token || token.trim().length === 0) {
+      throw new Error("El token FCM no puede estar vacío");
+    }
+    this._fcmToken = token;
+  }
+
+  limpiarFcmToken(): void {
+    this._fcmToken = undefined;
+  }
+
   async cambiarContrasena(nuevaContrasena: string): Promise<void> {
     this.validateContrasena(nuevaContrasena);
     this._contrasenaHash = await bcrypt.hash(
@@ -72,6 +95,23 @@ export class Usuario {
 
   async verificarContrasena(contrasena: string): Promise<boolean> {
     return await bcrypt.compare(contrasena, this._contrasenaHash);
+  }
+
+  agregarTokenRecuperacion(token: string, fechaExpiracion: Date): void {
+    this._tokenRecuperacion = token;
+    this._fechaExpiracionToken = fechaExpiracion;
+  }
+
+  limpiarTokenRecuperacion(): void {
+    this._tokenRecuperacion = undefined;
+    this._fechaExpiracionToken = undefined;
+  }
+
+  esTokenRecuperacionValido(): boolean {
+    if (!this._tokenRecuperacion || !this._fechaExpiracionToken) {
+      return false;
+    }
+    return new Date() < this._fechaExpiracionToken;
   }
 
   agregarProgreso(progreso: ProgresoUsuario): void {

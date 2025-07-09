@@ -11,9 +11,9 @@ import { NotificacionEntity } from "../../../Config/db/entities/Notificacion.Ent
 import { Phone } from "../../../Domain/ValueObjects/Phone";
 
 export class TypeORMUsuarioRepository implements UsuarioRepository {
-  private usuarioRepo: Repository<UsuarioEntity>;
-  private progresoRepo: Repository<ProgresoUsuarioEntity>;
-  private notificacionRepo: Repository<NotificacionEntity>;
+  private readonly usuarioRepo: Repository<UsuarioEntity>;
+  private readonly progresoRepo: Repository<ProgresoUsuarioEntity>;
+  private readonly notificacionRepo: Repository<NotificacionEntity>;
 
   constructor(dataSource: DataSource) {
     this.usuarioRepo = dataSource.getRepository(UsuarioEntity);
@@ -30,6 +30,9 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
     usuarioEntity.contrasena_hash = usuario.contrasenaHash;
     usuarioEntity.idioma_preferido = usuario.idiomaPreferido.getValue();
     usuarioEntity.fecha_registro = usuario.fechaRegistro;
+    usuarioEntity.fcmToken = usuario.fcmToken;
+    usuarioEntity.token_recuperacion = usuario.tokenRecuperacion;
+    usuarioEntity.fecha_expiracion_token = usuario.fechaExpiracionToken;
 
     await this.usuarioRepo.save(usuarioEntity);
 
@@ -82,6 +85,21 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
    }
   }
 
+  async findByTokenRecuperacion(token: string): Promise<Usuario | null> {
+    try {
+      const usuarioEntity = await this.usuarioRepo.findOne({
+        where: { token_recuperacion: token },
+        relations: ["progresos", "notificaciones"],
+      });
+      
+      if (!usuarioEntity) return null;
+
+      return this.toDomain(usuarioEntity);
+    } catch (error) {
+      throw new Error("Error al buscar usuario por token: " + error);
+    }
+  }
+
   async delete(id: string): Promise<void> {
     await this.usuarioRepo.delete(id);
   }
@@ -102,6 +120,14 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
       idiomaPreferido,
       entity.fecha_registro
     );
+
+    if (entity.fcmToken) {
+      usuario.establecerFcmToken(entity.fcmToken);
+    }
+
+    if (entity.token_recuperacion && entity.fecha_expiracion_token) {
+      usuario.agregarTokenRecuperacion(entity.token_recuperacion, entity.fecha_expiracion_token);
+    }
 
     if (entity.progresos) {
       for (const progresoEntity of entity.progresos) {

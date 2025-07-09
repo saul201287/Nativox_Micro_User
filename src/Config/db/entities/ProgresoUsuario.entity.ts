@@ -3,6 +3,7 @@ import {
   PrimaryColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
 } from "typeorm";
@@ -24,6 +25,12 @@ export class ProgresoUsuarioEntity {
 
   @CreateDateColumn()
   fecha_ultima_actividad!: Date;
+
+  @CreateDateColumn()
+  fecha_creacion!: Date;
+
+  @UpdateDateColumn()
+  fecha_actualizacion!: Date;
 
   @ManyToOne(() => UsuarioEntity, (usuario) => usuario.progresos)
   @JoinColumn({ name: "usuario_id" })

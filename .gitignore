@@ -1,6 +1,7 @@
 .env
 /node_modules
-/serviceAccountKey.json
+/service_account.json
 /dist
 /init.sql
 /docker-compose.yml
+/Dockerfile

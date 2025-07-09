@@ -7,6 +7,7 @@ export interface RegistrarUsuarioDTO {
   phone: string;
   contrasena: string;
   idiomaPreferido: IdiomaPreferido;
+  fcmToken: string;
 }
 
 export interface LoginDTO {
@@ -24,4 +25,18 @@ export interface EnviarNotificacionDTO {
   usuarioId: string;
   mensaje: string;
   tipo?: TipoNotificacion;
+}
+
+export interface SolicitarRecuperacionContrasenaDTO {
+  email: string;
+}
+
+export interface RestablecerContrasenaDTO {
+  token: string;
+  nuevaContrasena: string;
+}
+
+export interface ActualizarFcmTokenDTO {
+  usuarioId: string;
+  fcmToken: string;
 }

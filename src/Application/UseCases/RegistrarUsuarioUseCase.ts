@@ -16,9 +16,9 @@ import {
 
 export class RegistrarUsuarioUseCase {
   constructor(
-    private usuarioRepository: UsuarioRepository,
-    private eventPublisher: EventPublisher,
-    private servicioNotificaciones: ServicioDeNotificaciones
+    private readonly usuarioRepository: UsuarioRepository,
+    private readonly eventPublisher: EventPublisher,
+    private readonly servicioNotificaciones: ServicioDeNotificaciones
   ) {}
 
   async execute(dto: RegistrarUsuarioDTO): Promise<{ id: string }> {
@@ -45,23 +45,27 @@ export class RegistrarUsuarioUseCase {
         email,
         phone,
         contrasenaHash,
-        idiomaPreferido
+        idiomaPreferido,
+        new Date(),
+        dto.fcmToken
       );
 
-      const userCreate = await this.usuarioRepository.save(usuario);
-
-      console.log(userCreate);
+      await this.usuarioRepository.save(usuario);
 
       const event = new UsuarioRegistradoEvent(
         usuarioId,
         usuario.email.getValue(),
-        usuario.nombre
+        usuario.nombre,
+        dto.fcmToken
       );
       await this.eventPublisher.publish(event);
-
+      const mensaje = `¡Gracias por unirte a Nativox!
+      Estamos muy emocionados de que formes parte de esta comunidad dedicada a preservar y aprender nuestras lenguas originarias. Con Nativox, podrás explorar el tzeltal y el zapoteco a través de lecciones interactivas, cuentos, minijuegos y herramientas con inteligencia artificial que te ayudarán a mejorar tu pronunciación, comprensión y vocabulario.
+      Te invitamos a comenzar tu primera lección y descubrir el mundo de las lenguas indígenas como nunca antes.
+      ¡Bienvenido a la nueva generación del aprendizaje cultural!`;
       await this.servicioNotificaciones.enviarNotificacion(
         usuarioId,
-        "¡Bienvenido a la plataforma!",
+        mensaje,
         TipoNotificacion.EMAIL
       );
 

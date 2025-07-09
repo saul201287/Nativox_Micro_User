@@ -3,6 +3,7 @@ import {
   PrimaryColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
   OneToMany,
 } from "typeorm";
 import { ProgresoUsuarioEntity } from "./ProgresoUsuario.entity";
@@ -30,6 +31,18 @@ export class UsuarioEntity {
 
   @CreateDateColumn()
   fecha_registro!: Date;
+
+  @UpdateDateColumn()
+  fecha_actualizacion!: Date;
+
+  @Column({ nullable: true })
+  fcmToken?: string;
+
+  @Column({ nullable: true })
+  token_recuperacion?: string;
+
+  @Column({ nullable: true })
+  fecha_expiracion_token?: Date;
 
   @OneToMany(() => ProgresoUsuarioEntity, (progreso) => progreso.usuario)
   progresos!: ProgresoUsuarioEntity[];

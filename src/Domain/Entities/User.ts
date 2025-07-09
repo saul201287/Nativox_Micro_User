@@ -1,4 +1,3 @@
-import { DomainError } from "../../Shared/errors/domain-error";
 import { Email } from "../ValueObjects/Email";
 import { Phone } from "../ValueObjects/Phone";
 
@@ -11,6 +10,7 @@ export class User {
     phone: Phone;
     createdAt: Date;
     lastLoginAt?: Date;
+    fcmToken?: string; 
   }) {}
 
   public login(): void {

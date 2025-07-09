@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, CreateDateColumn, UpdateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { UsuarioEntity } from "./User.Entity";
 
 @Entity("notificaciones")
@@ -17,6 +17,12 @@ export class NotificacionEntity {
 
   @CreateDateColumn()
   fecha_envio!: Date;
+
+  @CreateDateColumn()
+  fecha_creacion!: Date;
+
+  @UpdateDateColumn()
+  fecha_actualizacion!: Date;
 
   @ManyToOne(() => UsuarioEntity, (usuario) => usuario.notificaciones)
   @JoinColumn({ name: "usuario_id" })

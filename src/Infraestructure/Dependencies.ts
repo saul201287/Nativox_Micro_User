@@ -4,6 +4,9 @@ import { database } from "../Config/db/connect";
 import { ActualizarProgresoUseCase } from "../Application/UseCases/ActualizarProgresoUseCase";
 import { LoginUseCase } from "../Application/UseCases/LoginUseCase";
 import { RegistrarUsuarioUseCase } from "../Application/UseCases/RegistrarUsuarioUseCase";
+import { SolicitarRecuperacionContrasenaUseCase } from "../Application/UseCases/SolicitarRecuperacionContrasenaUseCase";
+import { RestablecerContrasenaUseCase } from "../Application/UseCases/RestablecerContrasenaUseCase";
+import { ActualizarFcmTokenUseCase } from "../Application/UseCases/ActualizarFcmTokenUseCase";
 import { ServicioDeAutenticacion } from "../Domain/Services/ServicesAuth";
 import {
   ServicioDeNotificaciones,
@@ -65,8 +68,27 @@ const actualizarProgresoUseCase = new ActualizarProgresoUseCase(
   eventPublisher
 );
 
+const solicitarRecuperacionContrasenaUseCase = new SolicitarRecuperacionContrasenaUseCase(
+  usuarioRepository,
+  servicioNotificaciones
+);
+
+const restablecerContrasenaUseCase = new RestablecerContrasenaUseCase(
+  usuarioRepository,
+  servicioNotificaciones
+);
+
+const actualizarFcmTokenUseCase = new ActualizarFcmTokenUseCase(
+  usuarioRepository,
+  eventPublisher,
+  servicioNotificaciones
+);
+
 export const usuarioController = new UsuarioController(
   registrarUsuarioUseCase,
   loginUseCase,
-  actualizarProgresoUseCase
+  actualizarProgresoUseCase,
+  solicitarRecuperacionContrasenaUseCase,
+  restablecerContrasenaUseCase,
+  actualizarFcmTokenUseCase
 );
