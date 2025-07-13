@@ -2,6 +2,7 @@ import { ProgresoUsuario } from "../../Domain/Entities/ProgresoUsuario";
 import { ProgresoActualizadoEvent } from "../../Domain/Events/DomainEvents";
 import { UsuarioRepository, EventPublisher } from "../../Domain/Repositories/Ports";
 import { ActualizarProgresoDTO } from "../DTOs/DTOs";
+import crypto from "crypto";
 
 export class ActualizarProgresoUseCase {
   constructor(

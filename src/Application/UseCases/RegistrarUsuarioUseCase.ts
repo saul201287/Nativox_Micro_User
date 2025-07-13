@@ -13,6 +13,7 @@ import {
   ServicioDeNotificaciones,
   TipoNotificacion,
 } from "../../Domain/Services/ServicioDeNotificaciones";
+import crypto from "crypto";
 
 export class RegistrarUsuarioUseCase {
   constructor(
