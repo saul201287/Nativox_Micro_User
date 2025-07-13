@@ -10,7 +10,7 @@ app.use(morgan("dev"));
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/usuarios", userRouter);
+app.use("/api_user/usuarios", userRouter);
 app.use(
   (
     err: Error,
