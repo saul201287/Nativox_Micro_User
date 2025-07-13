@@ -1,11 +1,10 @@
-/*
 import { app } from "./Cmd/server";
 import helmet from "helmet";
 import { Signale } from "signale";
 import { database } from "./Config/db/connect";
 import { eventPublisher } from "./Infraestructure/Dependencies";
 import { startSagaConsumer } from "./Infraestructure/kafka/consumer";
-import { sanitizeInputs } from "./Shared/Middleware/sanitize";
+import { sanitizeInputs } from "./Shared/middleware/sanitize";
 
 async function bootstrap() {
   try {
@@ -71,8 +70,8 @@ bootstrap().catch((error) => {
   console.error("Fatal error:", error);
   process.exit(1);
 });
-*/
 
+/*
 //HTTPS
 import { app } from "./Cmd/server";
 import helmet from "helmet";
@@ -154,3 +153,4 @@ bootstrap().catch((error) => {
   console.error("Error fatal:", error);
   process.exit(1);
 });
+*/
