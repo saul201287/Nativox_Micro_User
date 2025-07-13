@@ -16,7 +16,7 @@ const AppDataSource = new DataSource({
   logging: false, //process.env.NODE_ENV === "development",
   entities:
     process.env.NODE_ENV === "production"
-      ? ["dist/db/entities/**/*.js"]
+      ? ["dist/Config/db/entities/**/*.js"]
       : ["src/Config/db/entities/**/*.ts"],
   migrations:
     process.env.NODE_ENV === "production"
