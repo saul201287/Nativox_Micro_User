@@ -12,9 +12,24 @@ export interface RegistrarUsuarioDTO {
   fcmToken: string;
 }
 
+export interface RegistrarUsuarioFirebaseDTO {
+  email: string;
+  password: string;
+  displayName?: string;
+  phoneNumber?: string;
+  nombre: string;
+  apellido: string;
+  idiomaPreferido: IdiomaPreferido;
+  fcmToken?: string;
+}
+
 export interface LoginDTO {
   email: string;
   contrasena: string;
+}
+
+export interface LoginFirebaseDTO {
+  idToken: string; // Token de Firebase Auth
 }
 
 export interface ResultadoLoginDTO {
@@ -26,6 +41,18 @@ export interface ResultadoLoginDTO {
     lastName: string;
     email: string;
     phone: string;
+  };
+}
+
+export interface ResultadoLoginFirebaseDTO {
+  token: string;
+  expiresAt: Date;
+  user: {
+    uid: string;
+    email: string;
+    displayName?: string;
+    phoneNumber?: string;
+    emailVerified: boolean;
   };
 }
 

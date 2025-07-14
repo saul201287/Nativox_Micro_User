@@ -7,13 +7,18 @@ import { RegistrarUsuarioUseCase } from "../Application/UseCases/RegistrarUsuari
 import { SolicitarRecuperacionContrasenaUseCase } from "../Application/UseCases/SolicitarRecuperacionContrasenaUseCase";
 import { RestablecerContrasenaUseCase } from "../Application/UseCases/RestablecerContrasenaUseCase";
 import { ActualizarFcmTokenUseCase } from "../Application/UseCases/ActualizarFcmTokenUseCase";
+import { RegistrarUsuarioFirebaseUseCase } from "../Application/UseCases/RegistrarUsuarioFirebaseUseCase";
+import { LoginFirebaseUseCase } from "../Application/UseCases/LoginFirebaseUseCase";
 import { ServicioDeAutenticacion } from "../Domain/Services/ServicesAuth";
+import { FirebaseAuthService } from "../Domain/Services/FirebaseAuthService";
 import {
   ServicioDeNotificaciones,
   TipoNotificacion,
 } from "../Domain/Services/ServicioDeNotificaciones";
 import { TypeORMUsuarioRepository } from "../Infraestructure/Adapters/TypeORM/UserRepository";
 import { UsuarioController } from "../Infraestructure/HTTP/Controllers/UsuarioController";
+import { FirebaseAuthController } from "../Infraestructure/HTTP/Controllers/FirebaseAuthController";
+import { FirebaseAuthMiddleware } from "../Shared/middleware/firebase-auth-middleware";
 import { KafkaEventPublisher } from "../Infraestructure/Messaging/KafkaEventPublisher";
 import {
   PushNotificationStrategy,
@@ -84,6 +89,29 @@ const actualizarFcmTokenUseCase = new ActualizarFcmTokenUseCase(
   servicioNotificaciones
 );
 
+// Firebase Authentication dependencies
+const firebaseAuthService = new FirebaseAuthService();
+
+const registrarUsuarioFirebaseUseCase = new RegistrarUsuarioFirebaseUseCase(
+  firebaseAuthService,
+  usuarioRepository,
+  eventPublisher,
+  servicioNotificaciones
+);
+
+const loginFirebaseUseCase = new LoginFirebaseUseCase(
+  firebaseAuthService,
+  usuarioRepository
+);
+
+const firebaseAuthMiddleware = new FirebaseAuthMiddleware(firebaseAuthService);
+
+const firebaseAuthController = new FirebaseAuthController(
+  registrarUsuarioFirebaseUseCase,
+  loginFirebaseUseCase,
+  firebaseAuthService
+);
+
 export const usuarioController = new UsuarioController(
   registrarUsuarioUseCase,
   loginUseCase,
@@ -92,3 +120,5 @@ export const usuarioController = new UsuarioController(
   restablecerContrasenaUseCase,
   actualizarFcmTokenUseCase
 );
+
+export { firebaseAuthController, firebaseAuthMiddleware };
