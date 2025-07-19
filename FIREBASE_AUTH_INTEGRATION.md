@@ -1,93 +1,90 @@
-# Integración Firebase Authentication
+# Integración de Firebase Authentication
 
-Esta documentación explica cómo usar la integración de Firebase Authentication en tu API de usuarios.
+## Descripción
 
-## Configuración Requerida
+Esta implementación permite manejar usuarios que se registran tanto con el sistema local como con Firebase Authentication, manteniendo una única entidad de usuario en la base de datos.
 
-### 1. Archivo de configuración de Firebase
+## Arquitectura
 
-Asegúrate de tener el archivo `service_account.json` en la raíz del proyecto con las credenciales de Firebase Admin SDK.
+### Estrategia Implementada
 
-### 2. Variables de entorno
+Se optó por **extender la entidad actual** en lugar de crear una nueva entidad separada. Esto proporciona:
 
-```env
-# Firebase (opcional, ya que usas service_account.json)
-FIREBASE_PROJECT_ID=tu-proyecto-id
-FIREBASE_PRIVATE_KEY=tu-clave-privada
-FIREBASE_CLIENT_EMAIL=tu-email-cliente
+- **Consistencia**: Un solo modelo de usuario para toda la aplicación
+- **Flexibilidad**: Soporte para múltiples proveedores de autenticación
+- **Simplicidad**: No duplicación de lógica de negocio
+- **Escalabilidad**: Fácil agregar más proveedores en el futuro
+
+### Campos Agregados
+
+```sql
+-- Campos para autenticación de Firebase
+firebase_uid VARCHAR(255) UNIQUE,
+firebase_display_name VARCHAR(255),
+firebase_phone_number VARCHAR(20),
+email_verificado BOOLEAN DEFAULT FALSE,
+ultimo_login TIMESTAMP,
+tipo_autenticacion VARCHAR(20) DEFAULT 'local'
 ```
 
 ## Endpoints Disponibles
 
-### Base URL
-```
-/api_user/auth/firebase
-```
+### 1. Registro con Firebase
 
-### 1. Registro de Usuario
+**POST** `/api_user/firebase/registrar`
 
-**POST** `/register`
-
-Registra un nuevo usuario usando Firebase Authentication.
-
-**Body:**
 ```json
 {
-  "email": "usuario@ejemplo.com",
-  "password": "contraseña123",
+  "email": "usuario@gmail.com",
+  "displayName": "Juan Pérez",
+  "phoneNumber": "+1234567890",
   "nombre": "Juan",
   "apellido": "Pérez",
-  "phoneNumber": "+525512345678",
   "idiomaPreferido": "español",
-  "fcmToken": "token-fcm-opcional"
+  "fcmToken": "dsdsdfsfdsdf234242",
+  "firebaseUid": "firebase_user_id_123",
+  "emailVerified": true
 }
 ```
 
-**Response (201):**
+**Respuesta:**
 ```json
 {
   "success": true,
-  "message": "Usuario registrado exitosamente",
+  "message": "Usuario registrado exitosamente con Firebase",
   "data": {
-    "token": "firebase-custom-token",
-    "expiresAt": "2024-01-01T12:00:00.000Z",
-    "user": {
-      "uid": "firebase-user-id",
-      "email": "usuario@ejemplo.com",
-      "displayName": "Juan Pérez",
-      "phoneNumber": "+525512345678",
-      "emailVerified": false
-    }
+    "id": "uuid-del-usuario",
+    "email": "usuario@gmail.com",
+    "nombre": "Juan",
+    "apellido": "Pérez"
   }
 }
 ```
 
-### 2. Login
+### 2. Login con Firebase
 
-**POST** `/login`
+**POST** `/api_user/firebase/login`
 
-Autentica un usuario usando un token de Firebase.
-
-**Body:**
 ```json
 {
-  "idToken": "firebase-id-token"
+  "idToken": "firebase_id_token_here",
+  "fcmToken": "dsdsdfsfdsdf234242"
 }
 ```
 
-**Response (200):**
+**Respuesta:**
 ```json
 {
   "success": true,
-  "message": "Login exitoso",
+  "message": "Login exitoso con Firebase",
   "data": {
-    "token": "firebase-id-token",
-    "expiresAt": "2024-01-01T12:00:00.000Z",
+    "token": "jwt_token_para_la_app",
+    "expiresAt": "2024-01-XXTXX:XX:XX.XXXZ",
     "user": {
-      "uid": "firebase-user-id",
-      "email": "usuario@ejemplo.com",
+      "uid": "firebase_user_id_123",
+      "email": "usuario@gmail.com",
       "displayName": "Juan Pérez",
-      "phoneNumber": "+525512345678",
+      "phoneNumber": "+1234567890",
       "emailVerified": true
     }
   }
@@ -96,360 +93,176 @@ Autentica un usuario usando un token de Firebase.
 
 ### 3. Verificar Token
 
-**POST** `/verify-token`
-
-Verifica si un token de Firebase es válido.
+**GET** `/api_user/firebase/verificar-token`
 
 **Headers:**
 ```
-Authorization: Bearer firebase-id-token
+Authorization: Bearer <jwt_token_o_firebase_token>
 ```
 
-**Response (200):**
+**Respuesta:**
 ```json
 {
   "success": true,
   "message": "Token válido",
   "data": {
-    "user": {
-      "uid": "firebase-user-id",
-      "email": "usuario@ejemplo.com",
-      "displayName": "Juan Pérez",
-      "phoneNumber": "+525512345678",
-      "emailVerified": true
-    }
+    "userId": "uuid-del-usuario",
+    "email": "usuario@gmail.com",
+    "firebaseUid": "firebase_user_id_123",
+    "tipoAutenticacion": "firebase"
   }
 }
 ```
 
-### 4. Obtener Usuario Actual
+### 4. Obtener Perfil
 
-**GET** `/me`
-
-Obtiene información del usuario autenticado.
+**GET** `/api_user/firebase/perfil`
 
 **Headers:**
 ```
-Authorization: Bearer firebase-id-token
+Authorization: Bearer <jwt_token_o_firebase_token>
 ```
 
-**Response (200):**
-```json
-{
-  "success": true,
-  "message": "Información del usuario obtenida",
-  "data": {
-    "user": {
-      "uid": "firebase-user-id",
-      "email": "usuario@ejemplo.com",
-      "displayName": "Juan Pérez",
-      "phoneNumber": "+525512345678",
-      "emailVerified": true
-    }
-  }
-}
+## Middleware de Autenticación Unificado
+
+### authMiddleware
+
+Middleware unificado que verifica tokens tanto JWT de la aplicación como tokens de Firebase.
+
+```typescript
+import { authMiddleware } from "../Shared/middleware/auth-middleware";
+
+// En las rutas
+app.get("/ruta-protegida", authMiddleware, (req, res) => {
+  // req.user contiene la información del usuario autenticado
+  // req.user.userId, req.user.email, req.user.firebaseUid, req.user.tipoAutenticacion
+});
 ```
 
-### 5. Enviar Email de Verificación
+### optionalAuthMiddleware
 
-**POST** `/send-email-verification`
+Middleware opcional que permite rutas públicas o autenticadas.
 
-Envía un email de verificación al usuario autenticado.
+```typescript
+import { optionalAuthMiddleware } from "../Shared/middleware/auth-middleware";
 
-**Headers:**
-```
-Authorization: Bearer firebase-id-token
-```
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "message": "Email de verificación enviado"
-}
-```
-
-### 6. Enviar Email de Restablecimiento de Contraseña
-
-**POST** `/send-password-reset`
-
-Envía un email para restablecer la contraseña.
-
-**Body:**
-```json
-{
-  "email": "usuario@ejemplo.com"
-}
-```
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "message": "Email de restablecimiento enviado"
-}
-```
-
-### 7. Ruta Protegida de Prueba
-
-**GET** `/protected`
-
-Ruta de prueba que requiere autenticación.
-
-**Headers:**
-```
-Authorization: Bearer firebase-id-token
-```
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "message": "Ruta protegida accedida correctamente",
-  "user": {
-    "uid": "firebase-user-id",
-    "email": "usuario@ejemplo.com",
-    "displayName": "Juan Pérez",
-    "phoneNumber": "+525512345678",
-    "emailVerified": true
-  }
-}
-```
-
-### 8. Ruta que Requiere Email Verificado
-
-**GET** `/verified-only`
-
-Ruta que requiere que el email esté verificado.
-
-**Headers:**
-```
-Authorization: Bearer firebase-id-token
-```
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "message": "Ruta accedida con email verificado",
-  "user": {
-    "uid": "firebase-user-id",
-    "email": "usuario@ejemplo.com",
-    "displayName": "Juan Pérez",
-    "phoneNumber": "+525512345678",
-    "emailVerified": true
-  }
-}
-```
-
-## Códigos de Error
-
-### 400 - Bad Request
-```json
-{
-  "success": false,
-  "message": "Datos de entrada inválidos",
-  "errors": [
-    {
-      "type": "field",
-      "value": "email-invalido",
-      "msg": "Email válido requerido",
-      "path": "email",
-      "location": "body"
-    }
-  ]
-}
-```
-
-### 401 - Unauthorized
-```json
-{
-  "success": false,
-  "message": "Token de autorización requerido"
-}
-```
-
-```json
-{
-  "success": false,
-  "message": "Token expirado"
-}
-```
-
-```json
-{
-  "success": false,
-  "message": "Token inválido"
-}
-```
-
-### 403 - Forbidden
-```json
-{
-  "success": false,
-  "message": "Email no verificado"
-}
-```
-
-### 404 - Not Found
-```json
-{
-  "success": false,
-  "message": "Usuario no encontrado en nuestra base de datos"
-}
-```
-
-### 409 - Conflict
-```json
-{
-  "success": false,
-  "message": "El email ya está registrado en nuestra base de datos"
-}
-```
-
-### 500 - Internal Server Error
-```json
-{
-  "success": false,
-  "message": "Error interno del servidor"
-}
+// En las rutas
+app.get("/ruta-opcional", optionalAuthMiddleware, (req, res) => {
+  // req.user puede estar definido o no
+});
 ```
 
 ## Flujo de Autenticación
 
-### 1. Registro
-1. El cliente llama a `/register` con los datos del usuario
-2. Se crea el usuario en Firebase Authentication
-3. Se crea el usuario en tu base de datos local
-4. Se envía email de verificación
-5. Se retorna un token personalizado de Firebase
+### 1. Registro de Usuario con Firebase
 
-### 2. Login
-1. El cliente obtiene un ID token de Firebase (desde el frontend)
-2. El cliente llama a `/login` con el ID token
-3. Se verifica el token con Firebase
-4. Se busca el usuario en tu base de datos
-5. Se retorna la información del usuario
+1. El cliente obtiene un token de Firebase Auth
+2. Envía los datos del usuario + token a `/api_user/firebase/registrar`
+3. El servidor verifica el token de Firebase
+4. Se crea el usuario en la base de datos con `tipo_autenticacion = "firebase"`
+5. Se retorna el ID del usuario creado
+
+### 2. Login de Usuario con Firebase
+
+1. El cliente obtiene un token de Firebase Auth
+2. Envía el token a `/api_user/firebase/login`
+3. El servidor verifica el token de Firebase
+4. Busca el usuario por `firebase_uid`
+5. Actualiza `ultimo_login` y `fcm_token`
+6. Retorna un JWT de la aplicación
 
 ### 3. Autenticación en Rutas Protegidas
-1. El cliente incluye el ID token en el header `Authorization: Bearer <token>`
-2. El middleware verifica el token con Firebase
-3. Si es válido, se agrega la información del usuario a `req.firebaseUser`
-4. La ruta puede acceder a `req.firebaseUser` para obtener información del usuario
 
-## Middleware Disponible
+1. El cliente envía el token en el header `Authorization`
+2. El middleware verifica si es JWT o token de Firebase automáticamente
+3. Si es válido, agrega `req.user` con la información del usuario
+4. La ruta puede acceder a `req.user`
 
-### FirebaseAuthMiddleware
+## Comparación de Tipos de Usuario
 
-```typescript
-// Autenticación requerida
-app.get('/ruta-protegida', firebaseAuthMiddleware.authenticate, (req, res) => {
-  // req.firebaseUser contiene la información del usuario
-});
-
-// Autenticación opcional
-app.get('/ruta-opcional', firebaseAuthMiddleware.optionalAuth, (req, res) => {
-  // req.firebaseUser puede ser undefined
-});
-
-// Requerir email verificado
-app.get('/ruta-verificada', 
-  firebaseAuthMiddleware.authenticate,
-  firebaseAuthMiddleware.requireEmailVerified,
-  (req, res) => {
-    // Solo usuarios con email verificado
-  }
-);
-
-// Verificar propiedad del recurso
-app.get('/usuario/:userId/perfil',
-  firebaseAuthMiddleware.authenticate,
-  firebaseAuthMiddleware.requireOwnership('userId'),
-  (req, res) => {
-    // Verificar que el usuario sea propietario del recurso
-  }
-);
+### Usuario Local
+```json
+{
+  "id": "uuid",
+  "nombre": "Jose Saúl",
+  "apellido": "Gómez",
+  "email": "23josesaul@gmail.com",
+  "phone": "9612175253",
+  "contrasena_hash": "hash_bcrypt",
+  "idiomaPreferido": "zapoteco",
+  "fcmToken": "dsdsdfsfdsdf234242",
+  "tipo_autenticacion": "local",
+  "firebase_uid": null,
+  "email_verificado": false
+}
 ```
 
-## Integración con Frontend
-
-### React Native / Flutter
-
-```javascript
-// 1. Obtener ID token de Firebase
-const idToken = await firebase.auth().currentUser.getIdToken();
-
-// 2. Login en tu API
-const response = await fetch('/api_user/auth/firebase/login', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({ idToken }),
-});
-
-// 3. Usar el token para rutas protegidas
-const userResponse = await fetch('/api_user/auth/firebase/me', {
-  headers: {
-    'Authorization': `Bearer ${idToken}`,
-  },
-});
+### Usuario Firebase
+```json
+{
+  "id": "uuid",
+  "nombre": "Juan",
+  "apellido": "Pérez",
+  "email": "usuario@gmail.com",
+  "phone": "+1234567890",
+  "contrasena_hash": null,
+  "idiomaPreferido": "español",
+  "fcmToken": "dsdsdfsfdsdf234242",
+  "tipo_autenticacion": "firebase",
+  "firebase_uid": "firebase_user_id_123",
+  "firebase_display_name": "Juan Pérez",
+  "firebase_phone_number": "+1234567890",
+  "email_verificado": true
+}
 ```
 
-### Web (JavaScript)
+## Migración de Base de Datos
 
-```javascript
-// 1. Obtener ID token de Firebase
-const idToken = await firebase.auth().currentUser.getIdToken();
+Ejecutar la migración para agregar los nuevos campos:
 
-// 2. Login en tu API
-const response = await fetch('/api_user/auth/firebase/login', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({ idToken }),
-});
-
-// 3. Usar el token para rutas protegidas
-const userResponse = await fetch('/api_user/auth/firebase/me', {
-  headers: {
-    'Authorization': `Bearer ${idToken}`,
-  },
-});
+```bash
+npm run migration:firebase
 ```
+
+O ejecutar manualmente el archivo `006_add_firebase_auth_fields.sql`.
+
+## Configuración Requerida
+
+### Variables de Entorno
+
+```env
+JWT_SECRET=tu_jwt_secret_aqui
+FIREBASE_PROJECT_ID=tu_proyecto_firebase
+```
+
+### Archivo de Configuración de Firebase
+
+Asegúrate de tener el archivo `service_account.json` en la raíz del proyecto con las credenciales de Firebase Admin SDK.
+
+## Ventajas de esta Implementación
+
+1. **Unificación**: Un solo modelo de usuario para toda la aplicación
+2. **Flexibilidad**: Soporte para múltiples proveedores de autenticación
+3. **Escalabilidad**: Fácil agregar Google, Facebook, etc.
+4. **Mantenibilidad**: Código más limpio y organizado
+5. **Compatibilidad**: Funciona con usuarios existentes
+6. **Seguridad**: Verificación de tokens de Firebase
+7. **Trazabilidad**: Registro de último login y tipo de autenticación
+8. **Middleware Unificado**: Un solo middleware para JWT y Firebase
 
 ## Consideraciones de Seguridad
 
-1. **Tokens**: Los tokens de Firebase tienen una duración limitada (1 hora por defecto)
-2. **Verificación de Email**: Implementa verificación de email para funcionalidades críticas
-3. **Rate Limiting**: Considera implementar rate limiting en los endpoints de autenticación
-4. **Logs**: Todos los errores de autenticación se registran en los logs
-5. **HTTPS**: Asegúrate de usar HTTPS en producción
+1. **Verificación de Tokens**: Siempre verificar tokens de Firebase en el servidor
+2. **Validación de Datos**: Sanitizar y validar todos los datos de entrada
+3. **Rate Limiting**: Implementar límites de tasa para endpoints de autenticación
+4. **Logging**: Registrar intentos de autenticación fallidos
+5. **HTTPS**: Usar HTTPS en producción
 
-## Migración desde Autenticación Tradicional
+## Próximos Pasos
 
-Si ya tienes usuarios con autenticación tradicional, puedes:
-
-1. Mantener ambos sistemas funcionando en paralelo
-2. Migrar usuarios gradualmente a Firebase
-3. Usar el mismo email para vincular cuentas
-4. Implementar un proceso de migración automática
-
-## Troubleshooting
-
-### Error: "Token expirado"
-- El token de Firebase ha expirado
-- El cliente debe obtener un nuevo token
-
-### Error: "Usuario no encontrado en nuestra base de datos"
-- El usuario existe en Firebase pero no en tu base de datos
-- Verifica la sincronización entre Firebase y tu base de datos
-
-### Error: "El email ya está registrado"
-- El email ya existe en tu base de datos
-- Considera implementar un proceso de vinculación de cuentas
-
-### Error: "Credenciales de Firebase nulas"
-- Verifica que el archivo `service_account.json` esté presente y sea válido
-- Verifica las variables de entorno de Firebase 
+1. Implementar autenticación con Google
+2. Implementar autenticación con Facebook
+3. Agregar validación de email para usuarios locales
+4. Implementar refresh tokens
+5. Agregar rate limiting
+6. Implementar logout y revocación de tokens 

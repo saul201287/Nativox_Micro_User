@@ -5,11 +5,21 @@ import { Email } from "../ValueObjects/Email";
 import { IdiomaPreferidoVO } from "../ValueObjects/IdiomaPreferido";
 import { Phone } from "../ValueObjects/Phone";
 
+interface FirebaseAuthData {
+  firebaseUid?: string;
+  firebaseDisplayName?: string;
+  firebasePhoneNumber?: string;
+  emailVerified?: boolean;
+  tipoAutenticacion?: string;
+}
+
 export class Usuario {
   private _progresos: ProgresoUsuario[] = [];
   private _notificaciones: Notificacion[] = [];
   private _tokenRecuperacion?: string;
   private _fechaExpiracionToken?: Date;
+  private _firebaseAuthData?: FirebaseAuthData;
+  private _ultimoLogin?: Date;
 
   constructor(
     private _id: string,
@@ -17,12 +27,14 @@ export class Usuario {
     private _apellido: string,
     private _email: Email,
     private _phone: Phone,
-    private _contrasenaHash: string,
-    private _idiomaPreferido: IdiomaPreferidoVO,
+    private _contrasenaHash?: string,
+    private _idiomaPreferido?: IdiomaPreferidoVO,
     private _fechaRegistro: Date = new Date(),
-    private _fcmToken?: string
+    private _fcmToken?: string,
+    firebaseAuthData?: FirebaseAuthData
   ) {
     this.validateNombre(this.nombre);
+    this._firebaseAuthData = firebaseAuthData;
   }
 
   get id(): string {
@@ -40,10 +52,10 @@ export class Usuario {
   get phone(): Phone {
     return this._phone;
   }
-  get contrasenaHash(): string {
+  get contrasenaHash(): string | undefined {
     return this._contrasenaHash;
   }
-  get idiomaPreferido(): IdiomaPreferidoVO {
+  get idiomaPreferido(): IdiomaPreferidoVO | undefined {
     return this._idiomaPreferido;
   }
   get fechaRegistro(): Date {
@@ -63,6 +75,39 @@ export class Usuario {
   }
   get fechaExpiracionToken(): Date | undefined {
     return this._fechaExpiracionToken;
+  }
+  get firebaseUid(): string | undefined {
+    return this._firebaseAuthData?.firebaseUid;
+  }
+  get firebaseDisplayName(): string | undefined {
+    return this._firebaseAuthData?.firebaseDisplayName;
+  }
+  get firebasePhoneNumber(): string | undefined {
+    return this._firebaseAuthData?.firebasePhoneNumber;
+  }
+  get emailVerified(): boolean {
+    return this._firebaseAuthData?.emailVerified || false;
+  }
+  get tipoAutenticacion(): string {
+    return this._firebaseAuthData?.tipoAutenticacion || "local";
+  }
+  get ultimoLogin(): Date | undefined {
+    return this._ultimoLogin;
+  }
+
+  // Método para verificar si es un usuario de Firebase
+  esUsuarioFirebase(): boolean {
+    return this.tipoAutenticacion === "firebase" || !!this._firebaseAuthData?.firebaseUid;
+  }
+
+  // Método para verificar si es un usuario local
+  esUsuarioLocal(): boolean {
+    return this.tipoAutenticacion === "local" && !!this._contrasenaHash;
+  }
+
+  // Método para actualizar último login
+  actualizarUltimoLogin(): void {
+    this._ultimoLogin = new Date();
   }
 
   cambiarNombre(nuevoNombre: string): void {
@@ -90,6 +135,10 @@ export class Usuario {
   }
 
   async cambiarContrasena(nuevaContrasena: string): Promise<void> {
+    if (this.esUsuarioFirebase()) {
+      throw new Error("No se puede cambiar la contraseña de un usuario de Firebase");
+    }
+    
     this.validateContrasena(nuevaContrasena);
     this._contrasenaHash = await bcrypt.hash(
       nuevaContrasena,
@@ -98,6 +147,9 @@ export class Usuario {
   }
 
   async verificarContrasena(contrasena: string): Promise<boolean> {
+    if (!this._contrasenaHash) {
+      return false;
+    }
     return await bcrypt.compare(contrasena, this._contrasenaHash);
   }
 

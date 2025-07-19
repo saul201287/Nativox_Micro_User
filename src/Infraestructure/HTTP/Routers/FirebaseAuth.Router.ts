@@ -1,88 +1,23 @@
-import { Router } from "express";
-import { FirebaseAuthController } from "../Controllers/FirebaseAuthController";
-import { FirebaseAuthMiddleware } from "../../../Shared/middleware/firebase-auth-middleware";
+import express from "express";
+import { firebaseAuthController } from "../../Dependencies"; // Asume que tienes esto en tu archivo de dependencias
+import { authMiddleware } from "../../../Shared/middleware/auth-middleware";
 
-export class FirebaseAuthRouter {
-  private router: Router;
-  private controller: FirebaseAuthController;
-  private authMiddleware: FirebaseAuthMiddleware;
+export const firebaseAuthRouter = express.Router();
 
-  constructor(
-    controller: FirebaseAuthController,
-    authMiddleware: FirebaseAuthMiddleware
-  ) {
-    this.router = Router();
-    this.controller = controller;
-    this.authMiddleware = authMiddleware;
-    this.setupRoutes();
-  }
+firebaseAuthRouter.post("/registrar", (req, res) =>{
+  console.log("body2", req.body);
+  
+  firebaseAuthController.registrarUsuario(req, res)}
+);
 
-  private setupRoutes(): void {
-    // Rutas públicas
-    this.router.post(
-      "/register",
-      FirebaseAuthController.registerValidation,
-      this.controller.register
-    );
+firebaseAuthRouter.post("/login", (req, res) =>
+  firebaseAuthController.login(req, res)
+);
 
-    this.router.post(
-      "/login",
-      FirebaseAuthController.loginValidation,
-      this.controller.login
-    );
+firebaseAuthRouter.get("/verificar-token", authMiddleware, (req, res) =>
+  firebaseAuthController.verificarToken(req, res)
+);
 
-    this.router.post(
-      "/verify-token",
-      this.controller.verifyToken
-    );
-
-    this.router.post(
-      "/send-password-reset",
-      this.controller.sendPasswordResetEmail
-    );
-
-    // Rutas protegidas (requieren autenticación)
-    this.router.get(
-      "/me",
-      this.authMiddleware.authenticate,
-      this.controller.getCurrentUser
-    );
-
-    this.router.post(
-      "/send-email-verification",
-      this.authMiddleware.authenticate,
-      this.controller.sendEmailVerification
-    );
-
-    // Ruta de prueba para verificar que el middleware funciona
-    this.router.get(
-      "/protected",
-      this.authMiddleware.authenticate,
-      (req, res) => {
-        res.json({
-          success: true,
-          message: "Ruta protegida accedida correctamente",
-          user: req.firebaseUser,
-        });
-      }
-    );
-
-    // Ruta que requiere email verificado
-    this.router.get(
-      "/verified-only",
-      this.authMiddleware.authenticate,
-      this.authMiddleware.requireEmailVerified,
-      (req, res) => {
-        res.json({
-          success: true,
-          message: "Ruta accedida con email verificado",
-          user: req.firebaseUser,
-        });
-      }
-    );
-  }
-
-  public getRouter(): Router {
-    return this.router;
-  }
-} 
+firebaseAuthRouter.get("/perfil", authMiddleware, (req, res) =>
+  firebaseAuthController.obtenerPerfil(req, res)
+);

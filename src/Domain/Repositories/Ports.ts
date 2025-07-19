@@ -6,6 +6,7 @@ export interface UsuarioRepository {
   save(usuario: Usuario): Promise<void>;
   findById(id: string): Promise<Usuario | null>;
   findByEmail(email: Email): Promise<Usuario | null>;
+  findByFirebaseUid(firebaseUid: string): Promise<Usuario | null>;
   findByTokenRecuperacion(token: string): Promise<Usuario | null>;
   delete(id: string): Promise<void>;
 }

@@ -27,13 +27,20 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
     usuarioEntity.nombre = usuario.nombre;
     usuarioEntity.apellido = usuario.apellido;
     usuarioEntity.email = usuario.email.getValue();
-    usuarioEntity.phone = usuario.phone.Number
+    usuarioEntity.phone = usuario.phone.Number;
     usuarioEntity.contrasena_hash = usuario.contrasenaHash;
-    usuarioEntity.idioma_preferido = usuario.idiomaPreferido.getValue();
+    usuarioEntity.idioma_preferido = usuario.idiomaPreferido?.getValue() || "español";
     usuarioEntity.fecha_registro = usuario.fechaRegistro;
     usuarioEntity.fcmToken = usuario.fcmToken;
     usuarioEntity.token_recuperacion = usuario.tokenRecuperacion;
     usuarioEntity.fecha_expiracion_token = usuario.fechaExpiracionToken;
+    
+    usuarioEntity.firebase_uid = usuario.firebaseUid;
+    usuarioEntity.firebase_display_name = usuario.firebaseDisplayName;
+    usuarioEntity.firebase_phone_number = usuario.firebasePhoneNumber;
+    usuarioEntity.email_verificado = usuario.emailVerified;
+    usuarioEntity.tipo_autenticacion = usuario.tipoAutenticacion;
+    usuarioEntity.ultimo_login = usuario.ultimoLogin;
 
     await this.usuarioRepo.save(usuarioEntity);
 
@@ -86,6 +93,21 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
    }
   }
 
+  async findByFirebaseUid(firebaseUid: string): Promise<Usuario | null> {
+    try {
+      const usuarioEntity = await this.usuarioRepo.findOne({
+        where: { firebase_uid: firebaseUid },
+        relations: ["progresos", "notificaciones"],
+      });
+      
+      if (!usuarioEntity) return null;
+
+      return this.toDomain(usuarioEntity);
+    } catch (error) {
+      throw new Error("Error al buscar usuario por Firebase UID: " + error);
+    }
+  }
+
   async findByTokenRecuperacion(token: string): Promise<Usuario | null> {
     try {
       const usuarioEntity = await this.usuarioRepo.findOne({
@@ -107,10 +129,18 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
 
   private toDomain(entity: UsuarioEntity): Usuario {
     const email = new Email(entity.email);
-    const phone = new Phone(entity.phone, true)
-    const idiomaPreferido = new IdiomaPreferidoVO(
-      entity.idioma_preferido as IdiomaPreferido
-    );
+    const phone = new Phone(entity.phone, true);
+    const idiomaPreferido = entity.idioma_preferido ? 
+      new IdiomaPreferidoVO(entity.idioma_preferido as IdiomaPreferido) : 
+      undefined;
+
+    const firebaseAuthData = {
+      firebaseUid: entity.firebase_uid,
+      firebaseDisplayName: entity.firebase_display_name,
+      firebasePhoneNumber: entity.firebase_phone_number,
+      emailVerified: entity.email_verificado,
+      tipoAutenticacion: entity.tipo_autenticacion
+    };
 
     const usuario = new Usuario(
       entity.id!,
@@ -120,11 +150,13 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
       phone,
       entity.contrasena_hash,
       idiomaPreferido,
-      entity.fecha_registro
+      entity.fecha_registro,
+      entity.fcmToken,
+      firebaseAuthData
     );
 
-    if (entity.fcmToken) {
-      usuario.establecerFcmToken(entity.fcmToken);
+    if (entity.ultimo_login) {
+      usuario.actualizarUltimoLogin();
     }
 
     if (entity.token_recuperacion && entity.fecha_expiracion_token) {

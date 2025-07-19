@@ -7,8 +7,7 @@ import {
 import { Email } from "../../Domain/ValueObjects/Email";
 import { IdiomaPreferidoVO } from "../../Domain/ValueObjects/IdiomaPreferido";
 import { Phone } from "../../Domain/ValueObjects/Phone";
-import { RegistrarUsuarioFirebaseDTO, ResultadoLoginFirebaseDTO } from "../DTOs/DTOs";
-import { FirebaseAuthService } from "../../Domain/Services/FirebaseAuthService";
+import { RegistrarUsuarioFirebaseDTO } from "../DTOs/DTOs";
 import {
   ServicioDeNotificaciones,
   TipoNotificacion,
@@ -17,43 +16,57 @@ import crypto from "crypto";
 
 export class RegistrarUsuarioFirebaseUseCase {
   constructor(
-    private readonly firebaseAuthService: FirebaseAuthService,
     private readonly usuarioRepository: UsuarioRepository,
     private readonly eventPublisher: EventPublisher,
     private readonly servicioNotificaciones: ServicioDeNotificaciones
   ) {}
 
-  async execute(dto: RegistrarUsuarioFirebaseDTO): Promise<ResultadoLoginFirebaseDTO> {
+  async execute(dto: RegistrarUsuarioFirebaseDTO): Promise<{ id: string }> {
     try {
+        console.log(dto);
+        
       const email = new Email(dto.email);
-      const phone = dto.phoneNumber ? new Phone(dto.phoneNumber, true) : undefined;
-
+      
+      // Verificar si el usuario ya existe por email o firebase_uid
       const usuarioExistente = await this.usuarioRepository.findByEmail(email);
+      const usuarioExistenteFirebase = await this.usuarioRepository.findByFirebaseUid(dto.firebaseUid);
+
       if (usuarioExistente) {
-        throw new Error("El email ya está registrado en nuestra base de datos");
+        throw new Error("El email ya está registrado");
       }
 
-      const displayName = `${dto.nombre} ${dto.apellido}`;
-      const firebaseResult = await this.firebaseAuthService.registrarUsuario(
-        dto.email,
-        dto.password,
-        displayName,
-        dto.phoneNumber
-      );
+      if (usuarioExistenteFirebase) {
+        throw new Error("El usuario de Firebase ya está registrado");
+      }
 
       const usuarioId = crypto.randomUUID();
       const idiomaPreferido = new IdiomaPreferidoVO(dto.idiomaPreferido);
-
+      
+      // Crear phone object si se proporciona
+      let phone: Phone | undefined;
+      if (dto.phoneNumber ) {
+        phone = new Phone(dto.phoneNumber, true);
+      }
+      if (phone === undefined) {
+        throw new Error("El número de teléfono no es válido");
+      }
       const usuario = new Usuario(
         usuarioId,
         dto.nombre,
         dto.apellido,
         email,
-        phone || new Phone("", false),
-        "", 
+        phone,
+        undefined,
         idiomaPreferido,
         new Date(),
-        dto.fcmToken || ""
+        dto.fcmToken,
+        {
+          firebaseUid: dto.firebaseUid,
+          firebaseDisplayName: dto.displayName,
+          firebasePhoneNumber: dto.phoneNumber,
+          emailVerified: dto.emailVerified || false,
+          tipoAutenticacion: "firebase"
+        }
       );
 
       await this.usuarioRepository.save(usuario);
@@ -77,16 +90,10 @@ export class RegistrarUsuarioFirebaseUseCase {
         TipoNotificacion.EMAIL
       );
 
-      await this.firebaseAuthService.enviarEmailVerificacion(firebaseResult.user.uid);
-
-      return {
-        token: firebaseResult.token,
-        expiresAt: firebaseResult.expiresAt,
-        user: firebaseResult.user,
-      };
+      return { id: usuarioId };
     } catch (error) {
-      console.error("Error en registro Firebase:", error);
-      throw new Error(`Error al registrar usuario: ${error}`);
+      console.log(error);
+      throw new Error("Error: " + error);
     }
   }
 } 

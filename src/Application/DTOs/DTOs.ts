@@ -1,4 +1,3 @@
-import { User } from "../../Domain/Entities/User";
 import { TipoNotificacion } from "../../Domain/Services/ServicioDeNotificaciones";
 import { IdiomaPreferido } from "../../Domain/ValueObjects/IdiomaPreferido";
 
@@ -14,13 +13,14 @@ export interface RegistrarUsuarioDTO {
 
 export interface RegistrarUsuarioFirebaseDTO {
   email: string;
-  password: string;
   displayName?: string;
   phoneNumber?: string;
   nombre: string;
   apellido: string;
   idiomaPreferido: IdiomaPreferido;
   fcmToken?: string;
+  firebaseUid: string;
+  emailVerified?: boolean;
 }
 
 export interface LoginDTO {
@@ -30,6 +30,7 @@ export interface LoginDTO {
 
 export interface LoginFirebaseDTO {
   idToken: string; // Token de Firebase Auth
+  fcmToken?: string;
 }
 
 export interface ResultadoLoginDTO {

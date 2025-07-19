@@ -1,41 +1,68 @@
-import { LoginFirebaseDTO, ResultadoLoginFirebaseDTO } from "../DTOs/DTOs";
-import { FirebaseAuthService } from "../../Domain/Services/FirebaseAuthService";
+import { Usuario } from "../../Domain/Aggregates/Usuario";
 import { UsuarioRepository } from "../../Domain/Repositories/Ports";
-import { Email } from "../../Domain/ValueObjects/Email";
+import { LoginFirebaseDTO, ResultadoLoginFirebaseDTO } from "../DTOs/DTOs";
+import admin from "../../Config/FireBase/faribase";
+import jwt from "jsonwebtoken";
 
 export class LoginFirebaseUseCase {
-  constructor(
-    private readonly firebaseAuthService: FirebaseAuthService,
-    private readonly usuarioRepository: UsuarioRepository
-  ) {}
+  constructor(private readonly usuarioRepository: UsuarioRepository) {}
 
   async execute(dto: LoginFirebaseDTO): Promise<ResultadoLoginFirebaseDTO> {
     try {
-      const firebaseUser = await this.firebaseAuthService.verificarToken(dto.idToken);
-
-      const email = new Email(firebaseUser.email);
-      const usuario = await this.usuarioRepository.findByEmail(email);
-
-      if (!usuario) {
-        throw new Error("Usuario no encontrado en nuestra base de datos");
+      // Verificar el token de Firebase
+      const decodedToken = await admin.auth().verifyIdToken(dto.idToken);
+      
+      if (!decodedToken) {
+        throw new Error("Token de Firebase inválido");
       }
 
-      const customToken = await this.firebaseAuthService.obtenerUsuarioPorUid(firebaseUser.uid);
+      // Buscar usuario por Firebase UID
+      const usuario = await this.usuarioRepository.findByFirebaseUid(decodedToken.uid);
+      
+      if (!usuario) {
+        throw new Error("Usuario no encontrado. Debe registrarse primero.");
+      }
+
+      // Actualizar último login
+      usuario.actualizarUltimoLogin();
+
+      // Actualizar FCM token si se proporciona
+      if (dto.fcmToken) {
+        usuario.establecerFcmToken(dto.fcmToken);
+      }
+
+      // Guardar cambios
+      await this.usuarioRepository.save(usuario);
+
+      // Generar token JWT para la aplicación
+      const token = jwt.sign(
+        {
+          userId: usuario.id,
+          email: usuario.email.getValue(),
+          firebaseUid: usuario.firebaseUid,
+          tipoAutenticacion: usuario.tipoAutenticacion
+        },
+        process.env.JWT_SECRET || "default_secret",
+        { expiresIn: "24h" }
+      );
+
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
 
       return {
-        token: dto.idToken,
-        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+        token,
+        expiresAt,
         user: {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          phoneNumber: firebaseUser.phoneNumber,
-          emailVerified: firebaseUser.emailVerified,
-        },
+          uid: usuario.firebaseUid!,
+          email: usuario.email.getValue(),
+          displayName: usuario.firebaseDisplayName,
+          phoneNumber: usuario.firebasePhoneNumber,
+          emailVerified: usuario.emailVerified
+        }
       };
     } catch (error) {
-      console.error("Error en login Firebase:", error);
-      throw new Error(`Error en login: ${error}`);
+      console.error("Error en login con Firebase:", error);
+      throw new Error("Error de autenticación: " + error);
     }
   }
 } 
