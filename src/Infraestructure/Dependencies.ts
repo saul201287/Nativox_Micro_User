@@ -22,6 +22,8 @@ import {
   PushNotificationStrategy,
   EmailNotificationStrategy,
 } from "../Infraestructure/Notifications/PushNotificationStrategy";
+import { CrearComentarioUseCase } from "../Application/UseCases/CrearComentarioUseCase";
+import { ObtenerComentariosUseCase } from "../Application/UseCases/ObtenerComentariosUseCase";
 
 
 
@@ -97,13 +99,18 @@ const actualizarFcmTokenUseCase = new ActualizarFcmTokenUseCase(
   servicioNotificaciones
 );
 
+const crearComentarioUseCase = new CrearComentarioUseCase(usuarioRepository);
+const obtenerComentariosUseCase = new ObtenerComentariosUseCase(usuarioRepository);
+
 export const usuarioController = new UsuarioController(
   registrarUsuarioUseCase,
   loginUseCase,
   actualizarProgresoUseCase,
   solicitarRecuperacionContrasenaUseCase,
   restablecerContrasenaUseCase,
-  actualizarFcmTokenUseCase
+  actualizarFcmTokenUseCase,
+  crearComentarioUseCase,
+  obtenerComentariosUseCase
 );
 
 export const firebaseAuthController = new FirebaseAuthController(

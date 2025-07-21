@@ -9,16 +9,20 @@ import { UsuarioEntity } from "../../../Config/db/entities/User.Entity";
 import { ProgresoUsuarioEntity } from "../../../Config/db/entities/ProgresoUsuario.entity";
 import { NotificacionEntity } from "../../../Config/db/entities/Notificacion.Entity";
 import { Phone } from "../../../Domain/ValueObjects/Phone";
+import { ComentarioEntity } from "../../../Config/db/entities/Comentarios.Entie";
+import { Comentario } from "../../../Domain/Entities/Comentario";
 
 export class TypeORMUsuarioRepository implements UsuarioRepository {
   private readonly usuarioRepo: Repository<UsuarioEntity>;
   private readonly progresoRepo: Repository<ProgresoUsuarioEntity>;
   private readonly notificacionRepo: Repository<NotificacionEntity>;
+  private readonly comentarioRepo: Repository<ComentarioEntity>;
 
   constructor(dataSource: DataSource) {
     this.usuarioRepo = dataSource.getRepository(UsuarioEntity);
     this.progresoRepo = dataSource.getRepository(ProgresoUsuarioEntity);
     this.notificacionRepo = dataSource.getRepository(NotificacionEntity);
+    this.comentarioRepo = dataSource.getRepository(ComentarioEntity);
   }
 
   async save(usuario: Usuario): Promise<void> {
@@ -125,6 +129,26 @@ export class TypeORMUsuarioRepository implements UsuarioRepository {
 
   async delete(id: string): Promise<void> {
     await this.usuarioRepo.delete(id);
+  }
+
+  async createComment(comentario: Comentario): Promise<void> {
+    const comentarioEntity = new ComentarioEntity();
+    comentarioEntity.id = comentario.id;
+    comentarioEntity.usuario_id = comentario.usuarioId;
+    comentarioEntity.mensaje = comentario.mensaje;
+    comentarioEntity.fecha_envio = comentario.fechaEnvio;
+
+    await this.comentarioRepo.save(comentarioEntity);
+  }
+
+  async findComments(): Promise<Comentario[]> {
+    const comentariosEntity = await this.comentarioRepo.find();
+    return comentariosEntity.map(entity => new Comentario(
+      entity.id,
+      entity.usuario_id,
+      entity.mensaje,
+      entity.fecha_envio
+    ));
   }
 
   private toDomain(entity: UsuarioEntity): Usuario {

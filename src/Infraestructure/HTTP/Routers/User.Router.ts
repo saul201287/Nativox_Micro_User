@@ -26,3 +26,11 @@ userRouter.post("/restablecer-contrasena", (req, res) =>
 userRouter.put("/:usuarioId/fcm-token", authMiddleware, (req, res) => {
   usuarioController.actualizarFcmToken(req, res);
 });
+
+userRouter.post("/comentarios", authMiddleware, (req, res) =>
+  usuarioController.crearComentario(req, res)
+);
+
+userRouter.get("/comentarios", authMiddleware, (req, res) =>
+  usuarioController.obtenerComentarios(req, res)
+);

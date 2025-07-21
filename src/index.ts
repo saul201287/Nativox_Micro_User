@@ -10,7 +10,7 @@ async function bootstrap() {
   try {
     await database.connect();
     const dataSource = database.getDataSource();
-
+    app.set("trust proxy", true);
     app.use(helmet.hidePoweredBy());
     app.use(
       helmet.hsts({

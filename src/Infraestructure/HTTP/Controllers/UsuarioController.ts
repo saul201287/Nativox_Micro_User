@@ -5,6 +5,8 @@ import { RegistrarUsuarioUseCase } from "../../../Application/UseCases/Registrar
 import { SolicitarRecuperacionContrasenaUseCase } from "../../../Application/UseCases/SolicitarRecuperacionContrasenaUseCase";
 import { RestablecerContrasenaUseCase } from "../../../Application/UseCases/RestablecerContrasenaUseCase";
 import { ActualizarFcmTokenUseCase } from "../../../Application/UseCases/ActualizarFcmTokenUseCase";
+import { CrearComentarioUseCase } from "../../../Application/UseCases/CrearComentarioUseCase";
+import { ObtenerComentariosUseCase } from "../../../Application/UseCases/ObtenerComentariosUseCase";
 
 export class UsuarioController {
   constructor(
@@ -13,7 +15,9 @@ export class UsuarioController {
     private readonly actualizarProgresoUseCase: ActualizarProgresoUseCase,
     private readonly solicitarRecuperacionContrasenaUseCase: SolicitarRecuperacionContrasenaUseCase,
     private readonly restablecerContrasenaUseCase: RestablecerContrasenaUseCase,
-    private readonly actualizarFcmTokenUseCase: ActualizarFcmTokenUseCase
+    private readonly actualizarFcmTokenUseCase: ActualizarFcmTokenUseCase,
+    private readonly crearComentarioUseCase: CrearComentarioUseCase,
+    private readonly obtenerComentariosUseCase: ObtenerComentariosUseCase
   ) {}
 
   async registrar(req: Request, res: Response): Promise<void> {
@@ -95,6 +99,25 @@ export class UsuarioController {
       res.status(200).json(result);
     } catch (error) {
       res.status(400).json({ error: error });
+    }
+  }
+
+  async crearComentario(req: Request, res: Response) {
+    try {
+      const { usuarioId, texto } = req.body;
+      await this.crearComentarioUseCase.execute({ usuarioId, texto });
+      res.status(201).json({ success: true, message: "Comentario creado" });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Error al crear comentario" });
+    }
+  }
+
+  async obtenerComentarios(req: Request, res: Response) {
+    try {
+      const comentarios = await this.obtenerComentariosUseCase.execute();
+      res.status(200).json({ success: true, comentarios });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Error al obtener comentarios" });
     }
   }
 }

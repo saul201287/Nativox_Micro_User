@@ -3,6 +3,7 @@ export class Comentario{
         private _id: string,
         private _usuarioId: string,
         private _mensaje: string,
+        private _fechaEnvio: Date = new Date(),
     ) {}
 
     get id(): string {
@@ -15,5 +16,9 @@ export class Comentario{
 
     get mensaje(): string {
         return this._mensaje;
+    }
+
+    get fechaEnvio(): Date {
+        return this._fechaEnvio;
     }
 }
