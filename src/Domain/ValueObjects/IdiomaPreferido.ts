@@ -1,5 +1,5 @@
 export enum IdiomaPreferido {
-  TZELTAL = "tzeltal",
+  TZELTAL = "tseltal",
   ZAPOTECO = "zapoteco",
   ESPANOL = "espanol",
 }

@@ -95,17 +95,14 @@ export class Usuario {
     return this._ultimoLogin;
   }
 
-  // Método para verificar si es un usuario de Firebase
   esUsuarioFirebase(): boolean {
     return this.tipoAutenticacion === "firebase" || !!this._firebaseAuthData?.firebaseUid;
   }
 
-  // Método para verificar si es un usuario local
   esUsuarioLocal(): boolean {
     return this.tipoAutenticacion === "local" && !!this._contrasenaHash;
   }
 
-  // Método para actualizar último login
   actualizarUltimoLogin(): void {
     this._ultimoLogin = new Date();
   }
