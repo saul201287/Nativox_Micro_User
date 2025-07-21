@@ -8,6 +8,8 @@ import { firebaseAuthRouter } from "../Infraestructure/HTTP/Routers/FirebaseAuth
 
 const app = express();
 
+app.set("trust proxy", true);
+
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 50,
