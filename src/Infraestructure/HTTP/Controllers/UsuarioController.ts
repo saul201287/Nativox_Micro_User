@@ -108,6 +108,8 @@ export class UsuarioController {
       await this.crearComentarioUseCase.execute({ usuarioId, texto });
       res.status(201).json({ success: true, message: "Comentario creado" });
     } catch (error) {
+      console.error("Error al crear comentario:", error);
+      
       res.status(500).json({ success: false, message: "Error al crear comentario" });
     }
   }
