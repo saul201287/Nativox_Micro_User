@@ -23,9 +23,7 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
 
   const token = authHeader.split(" ")[1];
 
-  // Verificar si es un token JWT de la aplicación o un token de Firebase
   if (token.includes(".") && token.split(".").length === 3) {
-    // Es un token JWT de la aplicación
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
       
@@ -38,17 +36,15 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
       
       return next();
     } catch (jwtError) {
-      // Si falla JWT, intentar con Firebase
       console.log("JWT verification failed, trying Firebase token");
     }
   }
 
-  // Verificar token de Firebase
   try {
     admin.auth().verifyIdToken(token)
       .then((decodedToken) => {
         req.user = {
-          userId: decodedToken.uid, // Usar UID como userId temporal
+          userId: decodedToken.uid,
           email: decodedToken.email || "",
           firebaseUid: decodedToken.uid,
           tipoAutenticacion: "firebase"
@@ -68,17 +64,15 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
-// Middleware opcional para rutas que pueden ser públicas o autenticadas
 export function optionalAuthMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return next(); // Continuar sin autenticación
+    return next(); 
   }
 
   const token = authHeader.split(" ")[1];
-
-  // Intentar verificar token JWT primero
+  
   if (token.includes(".") && token.split(".").length === 3) {
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as any;
@@ -92,12 +86,10 @@ export function optionalAuthMiddleware(req: AuthenticatedRequest, res: Response,
       
       return next();
     } catch (jwtError) {
-      // Continuar sin autenticación si falla JWT
       return next();
     }
   }
 
-  // Intentar verificar token de Firebase
   admin.auth().verifyIdToken(token)
     .then((decodedToken) => {
       req.user = {
@@ -109,7 +101,6 @@ export function optionalAuthMiddleware(req: AuthenticatedRequest, res: Response,
       next();
     })
     .catch((firebaseError) => {
-      // Continuar sin autenticación si falla Firebase
       console.log("Firebase token verification failed, continuing without auth");
       next();
     });

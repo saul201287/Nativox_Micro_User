@@ -47,15 +47,13 @@ export class RegistrarUsuarioFirebaseUseCase {
       if (dto.phoneNumber ) {
         phone = new Phone(dto.phoneNumber, true);
       }
-      if (phone === undefined) {
-        throw new Error("El número de teléfono no es válido");
-      }
+      
       const usuario = new Usuario(
         usuarioId,
         dto.nombre,
         dto.apellido,
         email,
-        phone,
+        phone === undefined ? new Phone("", true) : phone,
         undefined,
         idiomaPreferido,
         new Date(),
