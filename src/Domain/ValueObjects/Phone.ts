@@ -5,7 +5,7 @@ export class Phone {
     private readonly number: string,
     private readonly isVerified: boolean
   ) {
-    if (!this.isValidPhone(number)) {
+    if (!this.isValidPhone(number) && number.length !== 0) {
       throw new DomainError(
         "El número de teléfono debe tener exactamente 10 dígitos numéricos."
       );
