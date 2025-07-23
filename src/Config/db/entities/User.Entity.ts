@@ -24,7 +24,7 @@ export class UsuarioEntity {
   @Column({ unique: true })
   email!: string;
 
-  @Column({ unique: true, type: "varchar", length: 10 })
+  @Column({ type: "varchar", length: 10 })
   phone!: string;
 
   @Column({ nullable: true })
