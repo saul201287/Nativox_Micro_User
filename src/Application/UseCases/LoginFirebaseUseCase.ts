@@ -47,7 +47,7 @@ export class LoginFirebaseUseCase {
         token,
         expiresAt,
         user: {
-          uid: usuario.firebaseUid!,
+          uid: usuario.id!,
           email: usuario.email.getValue(),
           displayName: usuario.firebaseDisplayName,
           phoneNumber: usuario.firebasePhoneNumber,
