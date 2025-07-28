@@ -31,6 +31,6 @@ userRouter.post("/comentarios", authMiddleware, (req, res) =>
   usuarioController.crearComentario(req, res)
 );
 
-userRouter.get("/comentarios", authMiddleware, (req, res) =>
+userRouter.get("/comentarios", (req, res) =>
   usuarioController.obtenerComentarios(req, res)
 );
