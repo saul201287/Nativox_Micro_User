@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import { ObtenerNotificacionesUseCase } from "../../../Application/UseCases/ObtenerNotificacionesUseCase";
+import { MarcarNotificacionLeidaUseCase } from "../../../Application/UseCases/MarcarNotificacionLeidaUseCase";
 
 export class NotificacionController {
   constructor(
-    private readonly obtenerNotificacionesUseCase: ObtenerNotificacionesUseCase
+    private readonly obtenerNotificacionesUseCase: ObtenerNotificacionesUseCase,
+    private readonly marcarNotificacionLeidaUseCase: MarcarNotificacionLeidaUseCase
   ) {}
 
   /**
@@ -53,6 +55,44 @@ export class NotificacionController {
     }
   }
 
-  // Aquí podrías agregar más métodos relacionados con notificaciones en el futuro
-  // como marcar como leída, eliminar, etc.
+  /**
+   * Marca una notificación como leída
+   * @param req Request de Express
+   * @param res Response de Express
+   */
+  async marcarComoLeida(req: Request, res: Response): Promise<void> {
+    try {
+      const { notificacionId } = req.params;
+
+      if (!notificacionId) {
+        res.status(400).json({ 
+          success: false, 
+          message: "El ID de la notificación es requerido" 
+        });
+        return;
+      }
+
+      await this.marcarNotificacionLeidaUseCase.execute(notificacionId);
+      
+      res.status(200).json({
+        success: true,
+        message: "Notificación marcada como leída correctamente"
+      });
+    } catch (error) {
+      console.error("Error en NotificacionController.marcarComoLeida:", error);
+      
+      let statusCode = 500;
+      let message = "Error al marcar la notificación como leída";
+      
+      if (error instanceof Error) {
+        statusCode = error.message.includes("no se encontró") ? 404 : 500;
+        message = statusCode === 404 ? error.message : message;
+      }
+      
+      res.status(statusCode).json({
+        success: false,
+        message
+      });
+    }
+  }
 }

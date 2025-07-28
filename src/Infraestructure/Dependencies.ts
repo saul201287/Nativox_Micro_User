@@ -25,6 +25,7 @@ import {
 import { CrearComentarioUseCase } from "../Application/UseCases/CrearComentarioUseCase";
 import { ObtenerComentariosUseCase } from "../Application/UseCases/ObtenerComentariosUseCase";
 import { ObtenerNotificacionesUseCase } from "../Application/UseCases/ObtenerNotificacionesUseCase";
+import { MarcarNotificacionLeidaUseCase } from "../Application/UseCases/MarcarNotificacionLeidaUseCase";
 import { TypeORMNotificacionRepository } from "../Infraestructure/Adapters/TypeORM/NotificacionRepository";
 import { NotificacionController } from "../Infraestructure/HTTP/Controllers/NotificacionController";
 
@@ -106,8 +107,8 @@ const actualizarFcmTokenUseCase = new ActualizarFcmTokenUseCase(
 
 const crearComentarioUseCase = new CrearComentarioUseCase(usuarioRepository);
 const obtenerComentariosUseCase = new ObtenerComentariosUseCase(usuarioRepository);
-
 const obtenerNotificacionesUseCase = new ObtenerNotificacionesUseCase(notificacionRepository);
+const marcarNotificacionLeidaUseCase = new MarcarNotificacionLeidaUseCase(notificacionRepository);
 
 export const usuarioController = new UsuarioController(
   registrarUsuarioUseCase,
@@ -120,11 +121,12 @@ export const usuarioController = new UsuarioController(
   obtenerComentariosUseCase
 );
 
+export const notificacionController = new NotificacionController(
+  obtenerNotificacionesUseCase,
+  marcarNotificacionLeidaUseCase
+);
+
 export const firebaseAuthController = new FirebaseAuthController(
   registrarUsuarioFirebaseUseCase,
   loginFirebaseUseCase
-);
-
-export const notificacionController = new NotificacionController(
-  obtenerNotificacionesUseCase
 );

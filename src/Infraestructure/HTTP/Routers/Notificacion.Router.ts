@@ -45,4 +45,44 @@ notificacionRouter.get(
   (req, res) => notificacionController.obtenerPorUsuarioId(req, res)
 );
 
+/**
+ * @swagger
+ * /api/notificaciones/marcar-leida/{notificacionId}:
+ *   put:
+ *     summary: Marca una notificación como leída
+ *     tags: [Notificaciones]
+ *     parameters:
+ *       - in: path
+ *         name: notificacionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la notificación a marcar como leída
+ *     responses:
+ *       200:
+ *         description: Notificación marcada como leída correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Notificación marcada como leída correctamente"
+ *       400:
+ *         description: Error en la solicitud (falta ID de notificación)
+ *       404:
+ *         description: Notificación no encontrada
+ *       500:
+ *         description: Error interno del servidor
+ */
+notificacionRouter.put(
+  "/marcar-leida/:notificacionId",
+  authMiddleware,
+  (req, res) => notificacionController.marcarComoLeida(req, res)
+);
+
 export default notificacionRouter;
