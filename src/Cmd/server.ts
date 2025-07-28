@@ -8,7 +8,7 @@ import { firebaseAuthRouter } from "../Infraestructure/HTTP/Routers/FirebaseAuth
 
 const app = express();
 
-app.set("trust proxy", true);
+app.set("trust proxy", 3);
 
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -16,7 +16,7 @@ const generalLimiter = rateLimit({
   message: {
     error:
       "Demasiadas solicitudes desde esta IP, intenta de nuevo en 15 minutos.",
-    retryAfter: "15 minutes",
+    retryAfter: "15 minutos",
   },
   standardHeaders: true,
   legacyHeaders: false,

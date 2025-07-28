@@ -9,32 +9,26 @@ export class LoginFirebaseUseCase {
 
   async execute(dto: LoginFirebaseDTO): Promise<ResultadoLoginFirebaseDTO> {
     try {
-      // Verificar el token de Firebase
       const decodedToken = await admin.auth().verifyIdToken(dto.idToken);
       
       if (!decodedToken) {
         throw new Error("Token de Firebase inválido");
       }
 
-      // Buscar usuario por Firebase UID
       const usuario = await this.usuarioRepository.findByFirebaseUid(decodedToken.uid);
       
       if (!usuario) {
         throw new Error("Usuario no encontrado. Debe registrarse primero.");
       }
 
-      // Actualizar último login
       usuario.actualizarUltimoLogin();
 
-      // Actualizar FCM token si se proporciona
       if (dto.fcmToken) {
         usuario.establecerFcmToken(dto.fcmToken);
       }
 
-      // Guardar cambios
       await this.usuarioRepository.save(usuario);
 
-      // Generar token JWT para la aplicación
       const token = jwt.sign(
         {
           userId: usuario.id,

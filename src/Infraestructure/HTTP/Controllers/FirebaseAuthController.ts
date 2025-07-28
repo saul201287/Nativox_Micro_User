@@ -12,7 +12,6 @@ export class FirebaseAuthController {
 
   async registrarUsuario(req: Request, res: Response): Promise<void> {
     try {
-      console.log("body", req.body);
       
       const dto: RegistrarUsuarioFirebaseDTO = {
         email: req.body.email,
@@ -25,7 +24,6 @@ export class FirebaseAuthController {
         firebaseUid: req.body.firebaseUid,
         emailVerified: req.body.emailVerified || false
       };
-      console.log(dto);
       
       const resultado = await this.registrarUsuarioFirebaseUseCase.execute(dto);
 

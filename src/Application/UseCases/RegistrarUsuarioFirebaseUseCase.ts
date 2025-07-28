@@ -27,7 +27,6 @@ export class RegistrarUsuarioFirebaseUseCase {
         
       const email = new Email(dto.email);
       
-      // Verificar si el usuario ya existe por email o firebase_uid
       const usuarioExistente = await this.usuarioRepository.findByEmail(email);
       const usuarioExistenteFirebase = await this.usuarioRepository.findByFirebaseUid(dto.firebaseUid);
 
@@ -42,7 +41,6 @@ export class RegistrarUsuarioFirebaseUseCase {
       const usuarioId = crypto.randomUUID();
       const idiomaPreferido = new IdiomaPreferidoVO(dto.idiomaPreferido);
       
-      // Crear phone object si se proporciona
       let phone: Phone | undefined;
       if (dto.phoneNumber ) {
         phone = new Phone(dto.phoneNumber, true);

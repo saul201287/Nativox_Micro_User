@@ -5,6 +5,12 @@ export class ObtenerComentariosUseCase {
   constructor(private readonly usuarioRepository: UsuarioRepository) {}
 
   async execute(): Promise<Comentario[]> {
-    return this.usuarioRepository.findComments();
+   try {
+     const comentarios = await this.usuarioRepository.findComments();
+     return comentarios;
+   } catch (error) {
+    console.error("Error al obtener comentarios:", error);
+    throw error;
+   }
   }
 }
