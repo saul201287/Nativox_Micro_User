@@ -24,6 +24,9 @@ import {
 } from "../Infraestructure/Notifications/PushNotificationStrategy";
 import { CrearComentarioUseCase } from "../Application/UseCases/CrearComentarioUseCase";
 import { ObtenerComentariosUseCase } from "../Application/UseCases/ObtenerComentariosUseCase";
+import { ObtenerNotificacionesUseCase } from "../Application/UseCases/ObtenerNotificacionesUseCase";
+import { TypeORMNotificacionRepository } from "../Infraestructure/Adapters/TypeORM/NotificacionRepository";
+import { NotificacionController } from "../Infraestructure/HTTP/Controllers/NotificacionController";
 
 
 
@@ -40,6 +43,8 @@ const kafka = new Kafka({
 });
 
 const usuarioRepository = new TypeORMUsuarioRepository(dataSource);
+const notificacionRepository = new TypeORMNotificacionRepository(dataSource);
+
 export const eventPublisher = new KafkaEventPublisher(kafka);
 eventPublisher.connect();
 
@@ -102,6 +107,8 @@ const actualizarFcmTokenUseCase = new ActualizarFcmTokenUseCase(
 const crearComentarioUseCase = new CrearComentarioUseCase(usuarioRepository);
 const obtenerComentariosUseCase = new ObtenerComentariosUseCase(usuarioRepository);
 
+const obtenerNotificacionesUseCase = new ObtenerNotificacionesUseCase(notificacionRepository);
+
 export const usuarioController = new UsuarioController(
   registrarUsuarioUseCase,
   loginUseCase,
@@ -116,4 +123,8 @@ export const usuarioController = new UsuarioController(
 export const firebaseAuthController = new FirebaseAuthController(
   registrarUsuarioFirebaseUseCase,
   loginFirebaseUseCase
+);
+
+export const notificacionController = new NotificacionController(
+  obtenerNotificacionesUseCase
 );

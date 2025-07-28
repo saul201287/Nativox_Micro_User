@@ -5,6 +5,7 @@ import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { corsOptions } from "../Config/Cors/Cors.config";
 import { userRouter } from "../Infraestructure/HTTP/Routers/User.Router";
 import { firebaseAuthRouter } from "../Infraestructure/HTTP/Routers/FirebaseAuth.Router";
+import { notificacionRouter } from "../Infraestructure/HTTP/Routers/Notificacion.Router";
 
 const app = express();
 
@@ -94,6 +95,7 @@ app.use(
 
 app.use("/api_user/usuarios", userRouter);
 app.use("/api_user/firebase", firebaseAuthRouter);
+app.use("/api_user/notificaciones", notificacionRouter);
 
 app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
