@@ -5,11 +5,30 @@ import { database } from "./Config/db/connect";
 import { eventPublisher } from "./Infraestructure/Dependencies";
 import { startSagaConsumer } from "./Infraestructure/kafka/consumer";
 import { sanitizeInputs } from "./Shared/middleware/sanitize";
+import { KafkaClient } from "./Shared/infrastructure/kafka/KafkaClient";
+import { NotificacionConsumer } from "./Infraestructure/Messaging/Consumers/NotificacionConsumer";
+import { TypeORMNotificacionRepository } from "./Infraestructure/Adapters/TypeORM/NotificacionRepository";
 
 async function bootstrap() {
   try {
     await database.connect();
     const dataSource = database.getDataSource();
+
+    const kafkaBrokers = process.env.KAFKA_BROKERS?.split(',') || ['localhost:9092'];
+    const kafkaClient = new KafkaClient(
+      kafkaBrokers,
+      'user-service',
+      'user-service-group'
+    );
+    
+    const notificacionRepository = new TypeORMNotificacionRepository(dataSource);
+    const notificacionConsumer = new NotificacionConsumer(kafkaClient, notificacionRepository);
+    
+    await notificacionConsumer.start().catch(error => {
+      console.error('Failed to start notification consumer:', error);
+      process.exit(1);
+    });
+
     app.use(helmet.hidePoweredBy());
     app.use(
       helmet.hsts({
