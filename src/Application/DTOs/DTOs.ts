@@ -1,5 +1,7 @@
+import { Usuario } from "../../Domain/Aggregates/Usuario";
 import { TipoNotificacion } from "../../Domain/Services/ServicioDeNotificaciones";
 import { IdiomaPreferido } from "../../Domain/ValueObjects/IdiomaPreferido";
+import { Secret, sign } from "jsonwebtoken";
 
 export interface RegistrarUsuarioDTO {
   nombre: string;
@@ -29,7 +31,7 @@ export interface LoginDTO {
 }
 
 export interface LoginFirebaseDTO {
-  idToken: string; // Token de Firebase Auth
+  idToken: string;
   fcmToken?: string;
 }
 
@@ -82,3 +84,30 @@ export interface ActualizarFcmTokenDTO {
   usuarioId: string;
   fcmToken: string;
 }
+
+export const generateAccesToken = (user: Usuario) => {
+  const payload = {
+    sub: user.id,
+    email: user.email.getValue(),
+    roles: user.firebaseUid,
+    type: "access",
+  };
+
+ const privateKey = process.env.PRIVATE_KEY;
+  if (!privateKey) {
+    throw new Error("Private key is not defined in environment variables");
+  }
+/*
+ const token = sign(payload, privateKey as Secret, {
+   algorithm: 'RS256',
+   expiresIn: process.env.ACCESSTOKEN_EXPIRATION,
+   issuer: process.env.ISSUER,
+   audience: process.env.AUDIENCE,
+   keyid: process.env.KEYID,
+ });
+ return {
+    token,
+    expiresAt: new Date(Date.now() + parseInt(process.env.ACCESSTOKEN_EXPIRATION || "3600") * 1000),
+  };
+  */
+};
